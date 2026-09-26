@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Commerce Telemetry Store & Cloud Observability Dashboard — System Documentation</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --card-bg: #1e293b;
+            --border: #334155;
+            --text: #f1f5f9;
+            --text-muted: #94a3b8;
+            --accent: #38bdf8;
+            --accent-hover: #0ea5e9;
+            --code-bg: #0b1120;
+        }
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.7;
+            margin: 0;
+            padding: 40px 20px;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 56px 48px;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.6);
+        }
+        h1, h2, h3, h4 { color: #ffffff; font-weight: 800; letter-spacing: -0.02em; }
+        h1 { font-size: 2.3rem; border-bottom: 2px solid var(--border); padding-bottom: 16px; margin-bottom: 24px; color: var(--accent); }
+        h2 { font-size: 1.6rem; border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-top: 40px; color: #e2e8f0; }
+        h3 { font-size: 1.25rem; margin-top: 28px; color: #cbd5e1; }
+        a { color: var(--accent); text-decoration: none; font-weight: 600; }
+        a:hover { text-decoration: underline; color: var(--accent-hover); }
+        pre {
+            background: var(--code-bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 18px;
+            overflow-x: auto;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            color: #e2e8f0;
+            line-height: 1.5;
+        }
+        code {
+            font-family: 'JetBrains Mono', monospace;
+            background: rgba(255, 255, 255, 0.08);
+            padding: 3px 6px;
+            border-radius: 4px;
+            font-size: 0.88em;
+            color: #38bdf8;
+        }
+        pre code { background: transparent; padding: 0; color: inherit; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 24px 0;
+            font-size: 0.94rem;
+        }
+        th, td {
+            border: 1px solid var(--border);
+            padding: 12px 16px;
+            text-align: left;
+        }
+        th {
+            background: #0b1120;
+            font-weight: 700;
+            color: #e2e8f0;
+        }
+        tr:nth-child(even) { background: rgba(255, 255, 255, 0.02); }
+        hr { border: none; border-top: 1px solid var(--border); margin: 36px 0; }
+        blockquote {
+            border-left: 4px solid var(--accent);
+            margin: 20px 0;
+            padding: 12px 20px;
+            background: rgba(56, 189, 248, 0.08);
+            border-radius: 0 8px 8px 0;
+            color: #cbd5e1;
+        }
+        .header-actions {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 24px;
+            gap: 12px;
+        }
+        .btn-action {
+            background: var(--accent);
+            color: #0f172a;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 13.5px;
+            cursor: pointer;
+            box-shadow: 0 4px 14px rgba(56, 189, 248, 0.35);
+            transition: all 0.15s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn-action:hover {
+            background: var(--accent-hover);
+            transform: translateY(-1px);
+        }
+        @media print {
+            .header-actions { display: none; }
+            body { background: #ffffff; color: #000000; padding: 0; }
+            .container { border: none; box-shadow: none; padding: 0; max-width: 100%; }
+            h1, h2, h3, h4 { color: #000000; }
+            pre, code { background: #f8fafc; color: #000000; border-color: #cbd5e1; }
+            th, td { border-color: #cbd5e1; color: #000000; }
+            th { background: #e2e8f0; }
+            blockquote { border-left-color: #0284c7; background: #f0f9ff; color: #0f172a; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header-actions">
+            <button class="btn-action" onclick="window.print()">🖨️ Save as PDF / Print</button>
+        </div>
+        <div id="content">Loading documentation...</div>
+    </div>
+
+    <script id="markdown-data" type="text/markdown">
+# E-Commerce Telemetry Store & Cloud Observability Dashboard
+## Comprehensive System Architecture & Technical Documentation
+
+---
+
+## 1. Executive Summary & Project Purpose
+
+This project is an enterprise-grade **Cloud-Native E-Commerce Platform with an integrated Real-Time Developer Monitoring & SRE Observability Dashboard**. 
+
+Built for high availability, asynchronous telemetry delivery with controlled backpressure handling, and sub-second operational awareness, the system connects directly to **Google Cloud Platform (GCP)** services—**Cloud Run, Cloud Logging, Cloud Monitoring, and Cloud Firestore**—to provide:
+1. A customer-facing e-commerce storefront with atomic, permanent sequential order tracking.
+2. An SRE/DevOps monitoring control room that reads **100% genuine telemetry** from Google Cloud infrastructure without fabricated fallback values.
+3. A complete incident management lifecycle featuring **Active Alerts**, a **7-Day Rolling Alert History**, and instant one-click acknowledgement.
+4. Universal time synchronization in **Indian Standard Time (IST — Asia/Kolkata)** across every user-visible surface.
+
+### Live Production Deployment
+* **Google Cloud Project**: `shop-proj-thiru-9988`
+* **Cloud Run Service**: `cloud-monitoring` (Region: `us-central1`)
+* **Customer Shop URL**: [https://cloud-monitoring-969412199400.us-central1.run.app/shop](https://cloud-monitoring-969412199400.us-central1.run.app/shop)
+* **Developer Dashboard URL**: [https://cloud-monitoring-969412199400.us-central1.run.app/developer/dashboard](https://cloud-monitoring-969412199400.us-central1.run.app/developer/dashboard)
+
+---
+
+## 2. Technology Stack & Why Each Was Chosen
+
+| Technology | Role | Why It Was Chosen |
+| :--- | :--- | :--- |
+| **Python 3.11** | Backend Language | Fast, reliable, native support for modern typing and standard library `zoneinfo`. |
+| **Flask 3.x** | Microframework | Lightweight, minimal overhead, perfect for high-throughput API endpoints and rapid routing. |
+| **Gunicorn 21.x** | Production WSGI Server | High-concurrency worker model (`gunicorn --bind 0.0.0.0:8080 app:app`) designed for Cloud Run container execution. |
+| **Google Cloud Run** | Serverless Container Host | Fully managed, auto-scales from 0 to N containers based on incoming HTTP traffic. Zero cost during idle downtime. |
+| **Google Cloud Logging** | Enterprise Log Sink & Store | Replaces fragile local log files with distributed, centralized cloud log management. Auditable, structured, with retention governed by cloud bucket policies. |
+| **Google Cloud Monitoring (v3)** | Real Infrastructure Telemetry | Native GCP metric APIs measuring genuine container CPU utilization, memory allocation, and live instance count. Zero fake/simulated data; displays N/A when telemetry is absent. |
+| **Google Cloud Firestore** | ACID Transactional NoSQL DB | Provides atomic increment transactions (`metadata/order_counter`) and persistent alert acknowledgement state surviving container restarts. |
+| **ZoneInfo (`tzdata`)** | Timezone Engine | Standard library timezone implementation enforcing exact `Asia/Kolkata` (UTC+05:30) conversions. |
+| **Chart.js + Vanilla JS** | Real-Time Frontend Charts | Zero bloated dependencies; direct canvas rendering for ultra-fast, smooth 60fps streaming telemetry with lock guards. |
+| **Vanilla CSS (Custom Tokens)** | Styling System | Modern dark/light glassmorphic UI, responsive layouts, micro-animations, and status pills without heavy frameworks. |
+
+---
+
+## 3. Core Architectural Pillars
+
+```text
+                                  +---------------------------------------+
+                                  |            CUSTOMER SHOP              |
+                                  |    (Place Orders, Browse Items)       |
+                                  +-------------------+-------------------+
+                                                      |
+                                    HTTP POST /order  |  HTTP GET /order/<id>
+                                                      v
++---------------------------------------------------------------------------------------------------+
+|                                     CLOUD RUN CONTAINER (Flask)                                   |
+|                                                                                                   |
+|  +---------------------------+   +----------------------------+   +----------------------------+  |
+|  |   Atomic Order Counter    |   |     Async Log Writer       |   |   Central IST Formatter    |  |
+|  |  (Firestore Transaction)  |   |   (Background Daemon)      |   |  format_ist_timestamp()    |  |
+|  +-------------+-------------+   +--------------+-------------+   +--------------+-------------+  |
++----------------|--------------------------------|--------------------------------|----------------+
+                 |                                |                                |
+                 v                                v                                v
++----------------+-------------+   +--------------+-------------+   +--------------+-------------+
+|    GOOGLE CLOUD FIRESTORE    |   |    GOOGLE CLOUD LOGGING    |   |   DEVELOPER DASHBOARD      |
+|                              |   |                            |   |                            |
+| - orders collection          |   | - projects/.../logs/       |   | - Active Alerts (0 or N)   |
+| - metadata/order_counter     |   |   flask-monitoring-app     |   | - 7-Day Alert History      |
+| - acknowledged_alerts        |   | - Rolling 7-day query      |   | - Real-time CPU/Mem/Charts |
++------------------------------+   +----------------------------+   +----------------------------+
+```
+
+---
+
+### Pillar 1: Persistent Sequential Order Counter (ACID Firestore Transaction)
+
+#### The Problem Solved
+In traditional serverless deployments, Python in-memory variables (like `order_id = 0`) reset to `1` whenever:
+* The container scales to zero due to inactivity.
+* A new Cloud Run instance spins up to handle traffic.
+* The container restarts or redeploys.
+
+#### How It Works in This Project
+1. When a customer calls `POST /order`, `_create_order_in_firestore(item, quantity)` is invoked.
+2. It executes an atomic Firestore transaction against `metadata/order_counter`:
+   ```python
+   @gcp_firestore.transactional
+   def _txn_step(txn):
+       snapshot = counter_ref.get(transaction=txn)
+       current_id = snapshot.get("last_order_id") or 0 if snapshot.exists else 0
+       next_order_id = current_id + 1
+       txn.set(counter_ref, {"last_order_id": next_order_id, "updated_at": gcp_firestore.SERVER_TIMESTAMP}, merge=True)
+       order_ref = _gcp_firestore_client.collection("orders").document(str(next_order_id))
+       txn.set(order_ref, {"order_id": next_order_id, "item": item, "quantity": quantity, "status": "Order Placed", "created_at": gcp_firestore.SERVER_TIMESTAMP})
+       return next_order_id
+   ```
+3. Upon commit, the actual stored `created_at` timestamp is read back from Firestore and converted to IST.
+4. **Guarantees**: Order IDs continue monotonically (`Order #1`, `Order #2`, `Order #3`...) permanently, regardless of days passed, instance restarts, or scale-to-zero events.
+
+---
+
+### Pillar 2: Dynamic Rolling 7-Day Logs Engine & Controlled Queue Delivery
+
+#### The Problem Solved
+Many monitoring dashboards either fetch all logs since the beginning of time (slow, expensive) or rely on local memory buffers (lost upon restart).
+
+#### How It Works in This Project
+1. **Log Retention Governance**: The application does not delete Google Cloud logs. The dashboard displays a dynamic rolling 7-day observability window (`timestamp >= now - 7 days`). Actual log retention is governed by the configured Google Cloud Logging bucket retention policy (by default 30 days for `_Default` buckets in GCP, or custom retention periods configured in Log Router sinks).
+2. **Server-Side Rolling Time Window**: Whenever the dashboard queries `/api/monitoring/logs`, the backend evaluates the exact current second:
+   ```python
+   cutoff = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=7)
+   cutoff_str = cutoff.strftime("%Y-%m-%dT%H:%M:%SZ")
+   filter_str = f'logName="projects/{GCP_PROJECT}/logs/{GCP_LOG_NAME}" timestamp >= "{cutoff_str}"'
+   ```
+3. **Continuous Rolling**: 
+   * As time advances second-by-second, the 7-day lower boundary advances automatically.
+   * Logs older than 7 days automatically roll out of the dashboard view.
+   * New logs appear instantly upon ingestion.
+
+#### Asynchronous Queue Saturation & Controlled Delivery Policy
+Application events are asynchronously delivered to Google Cloud Logging. Queue saturation and write failures are explicitly handled with controlled fallback and/or bounded retry logic. Guaranteed delivery is not claimed unless independently implemented and verified.
+* **Bounded Retry on Write Failure**: If a write to Google Cloud Logging fails, the background writer retries up to 3 times with exponential backoff. Upon retry exhaustion, the failure is explicitly recorded to application stderr and an atomic failure counter (`_log_delivery_failures`) is incremented.
+* **Never Silently Remove Queued Logs**: The system never silently removes an existing queued log to make space for a new one (all silent drop behaviors like `_write_queue.get_nowait()` have been removed).
+* **Synchronous Fallback on Queue Saturation**: On queue saturation, first attempt synchronous delivery to Google Cloud Logging. If delivery fails, explicitly record the failure locally/application stderr and increment a failure counter. Never silently remove an existing queued log to make space for a new one.
+* **Production Scalability Roadmap**: For massive, sustained enterprise traffic surges beyond container memory limits, a production-grade architecture would transition the buffering layer to Google Cloud Pub/Sub or Google Cloud Tasks.
+
+---
+
+### Pillar 3: Two-Tier Alert Lifecycle & Acknowledgment
+
+The dashboard divides incident management into two clearly delineated sections:
+
+```text
+New ERROR Log in Google Cloud
+               |
+               v
+    +--------------------+
+    |  🔴 ACTIVE ALERT   |  --> Appears in Section A (Active Alerts) with red badge
+    +----------+---------+  --> Appears in Section B (Alert History) marked as 🔴 ACTIVE
+               |
+    Developer reviews & clicks "✓ Acknowledge"
+               |
+               v
+    +--------------------+
+    |  ✓ ACKNOWLEDGED    |  --> Removed from Section A; shows "✓ All Systems Operational"
+    +--------------------+  --> Stays in Section B (Alert History) marked as ✓ ACKNOWLEDGED
+                            --> Log remains 100% intact in Google Cloud Logging (never deleted)
+```
+
+#### Canonical Identity Matching (`alert_id`)
+* Every GCP log has a unique, canonical `insert_id`.
+* The dashboard maps acknowledgements strictly using this canonical `alert_id`:
+   ```python
+   ack_map[str(canonical_id)] = {
+       "status": "ACKNOWLEDGED",
+       "acknowledged_at": formatted_ist_time
+   }
+   ```
+* Firestore document sanitization (`_safe_doc_id`) is strictly confined to `.document(safe_id)` paths to prevent slash errors, ensuring `Google Logging ID == Firestore Data ID` everywhere.
+
+#### Dual-Layer Firestore TTL Auto-Cleanup & Strict Lifecycle Alignment
+To prevent acknowledged alerts from accumulating in Firestore indefinitely after their 7-day log window expires:
+1. **Strict Lifecycle Alignment (`expires_at = alert_timestamp + 7 days`)**:
+   - Google Cloud Logging retains and filters error events in a rolling 7-day window (`timestamp >= now - 7 days`).
+   - If an alert occurs on Day 1 and is acknowledged on Day 6, setting `expires_at` based on the acknowledgement time would keep stale data until Day 13 (5 days after the log left the dashboard).
+   - By calculating:
+     $$\text{expires\_at} = \text{alert\_timestamp} + 7\text{ days}$$
+     the Firestore acknowledgement expires at the exact moment the original log event rolls out of the 7-day observability window, keeping both systems in 100% synchrony.
+   - **Strict Rejection on Unresolvable Timestamp**: The backend validates the original alert event timestamp from the request payload, the cached logs pool, or a direct GCP `list_entries` lookup by `insertId`. If the original timestamp cannot be resolved, the request is rejected with HTTP 422 (`{"error": "Original alert timestamp could not be resolved"}`), strictly forbidding any silent fallback to `now_utc`.
+2. **Native Cloud TTL Policy**: GCP Firestore TTL policy is active on `collectionGroups/acknowledged_alerts/fields/expires_at` (`state: ACTIVE`) for automated background document deletion.
+3. **Application-Layer Active Pruning**: Because Firestore background TTL deletion is asynchronous, `_get_acknowledged_alerts_map()` proactively filters out any document where `expires_at <= now_utc`, guaranteeing immediate expiration even before background deletion occurs.
+
+---
+
+### Pillar 4: Real-Time Infrastructure Metrics (100% Real GCP)
+
+Infrastructure metrics displayed by the dashboard are sourced directly from **Google Cloud Monitoring v3**:
+* **Latest Observation Point Selection**: Metric points are evaluated chronologically using the metric interval's `end_time`. The dashboard reports the latest genuine observation point rather than historical peak (`max()`) values over the lookback window.
+* **CPU Utilization**: Real metric from `run.googleapis.com/container/cpu/utilizations` (latest distribution mean converted to percentage). All artificial multipliers (such as `* 0.85`) and fake fallback constants are strictly purged.
+* **Genuine Zero Preservation**: Real zero values (e.g. `0.0% CPU`, `0 MB memory`, `0 active instances`) are preserved and displayed as genuine observations (`0.0%` / `0`), never conflated with missing data (`null`).
+* **Dynamic Memory Limit Detection**: Instead of assuming or hardcoding memory sizes, `_get_container_memory_limit_mb()` dynamically reads container cgroup limits (`/sys/fs/cgroup/memory.max` or `/sys/fs/cgroup/memory/memory.limit_in_bytes`). If the limit cannot be determined, it returns `None` rather than falling back to an assumed value.
+* **Memory Calculation & Missing Telemetry**:
+  $$\text{Real Memory Used (MB)} = \left(\frac{\text{GCP Memory \%}}{100}\right) \times \text{Actual Configured Limit (MB)}$$
+  If either the GCP memory utilization percentage or the detected container memory limit is unavailable, the system reports `memory_pct: null`, `memory_mb: null`, `memory_total_mb: null`, and `display: "N/A"` (never fabricating 0% or an assumed total).
+* **Container Instance Count**: Directly queries `run.googleapis.com/container/instance_count` across container states (`active` vs `idle`) to report the latest active container instances from GCP.
+* **Missing Idle Telemetry Honesty**: When Google Cloud Monitoring does not return idle instance data, the backend returns `idle_instances: null` and the frontend displays `N/A`, strictly avoiding fabricating `0 Idle Instances`.
+* **Zero Fabricated Fallbacks**: All hardcoded fallback numbers (such as `1.2% CPU`, `27.6% Memory`, `141 MB`, `512 MB`, `1 instance`, `0 idle`) and local `psutil` simulated stand-ins have been completely eliminated.
+* **Honest Handling of Missing Telemetry**: If Google Cloud Monitoring returns no telemetry data for a metric, the API explicitly returns `null` with structured status (`any_core_metric_missing`, `all_core_metrics_missing`), and the dashboard displays `N/A` with visually neutral progress indicators rather than misleading low-usage bars.
+* **Estimated Monthly Cost Status**: The application is not connected to the Google Cloud Billing API. The hardcoded `$12.4` figure has been removed; the API returns `estimated_monthly_cost: null`, `cost_display: "N/A"`, and `cost_source: "not-connected"`. Cost-efficiency optimization suggestions in the UI are presented as infrastructure sizing recommendations, not billed accounting facts.
+* **Parallel Fetching & Caching**: Queries are executed concurrently across worker threads using `concurrent.futures.ThreadPoolExecutor` with a thread-safe `threading.RLock()` cache (2-second TTL) to deliver fast responses without stacking GCP API calls.
+
+---
+
+### Pillar 5: Standardized Indian Standard Time (IST — Asia/Kolkata)
+
+Every visible date and time across both the Customer Portal and Developer Dashboard conforms strictly to the standardized format:
+```text
+DD-Mon-YYYY hh:mm:ss AM/PM IST
+Example: 06-Sep-2026 08:30:15 PM IST
+```
+
+#### Centralized Implementation
+In `app.py`:
+```python
+from zoneinfo import ZoneInfo
+IST = ZoneInfo("Asia/Kolkata")
+
+def format_ist_timestamp(ts) -> str:
+    if ts is None: return None
+    # Converts UTC datetimes, ISO strings, epoch floats, or Firestore timestamps
+    ...
+    return dt.astimezone(IST).strftime("%d-%b-%Y %I:%M:%S %p IST")
+```
+
+#### Where IST is Enforced:
+1. **Google Cloud Log timestamps**: Converted on-the-fly from UTC to IST upon reading.
+2. **Active Alert Detection time**: Formatted in IST.
+3. **Alert History**: Both `Detected` time and `Acknowledged` time formatted in IST.
+4. **Order API**: `POST /order` and `GET /order/<id>` return the exact committed Firestore `created_at` timestamp in IST.
+5. **Dashboard Charts**: Time axis labels render in `Asia/Kolkata` time with IST indicators.
+
+---
+
+## 4. Complete API & Route Reference
+
+| Method | Endpoint | Description | Security & Configuration |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/` or `/shop` | Customer Storefront | Serves `index.html` with catalog, order form, and live tracker. Public access. |
+| `POST` | `/order` | Place a customer order | **Body**: `{"item": "Drone", "quantity": 2}`<br>**Returns**: `{"id": 9, "status": "Order Placed", "created_at": "06-Sep-2026 09:47:24 PM IST"}`. |
+| `GET` | `/order/<id>` | Look up order by ID | **Returns**: `{"order_id": 9, "item": "Drone", "quantity": 2, "status": "Order Placed", "created_at": "06-Sep-2026 09:47:24 PM IST"}`. |
+| `GET` | `/developer/dashboard` | SRE Monitoring UI | Serves `developer_dashboard.html` with real-time charts and logs. Injects configurable polling intervals. |
+| `GET` | `/api/monitoring/logs` | Fetch 7-day logs & alerts | **Returns**: `total_logs`, `active_alerts_count`, `active_error_logs`, `alert_history`, `recent_logs`. |
+| `GET` | `/api/monitoring/metrics`| Fetch real GCP metrics | **Returns**: Structured `{cpu, memory, instances, cost}` with `metrics_source: "google-cloud-monitoring"`. Displays `N/A` when GCP has no data. |
+| `POST` | `/api/monitoring/alerts/acknowledge` | Acknowledge active alert(s) | **Body**: `{"alert_id": "1fe99fcfaq51ok"}` or `{"all": true}`<br>**Saves to**: Firestore `acknowledged_alerts`. |
+| `POST` | `/api/simulate-error` | Chaos testing drill | **Protected**: Requires `ENABLE_ERROR_SIMULATION=true` (default `false` -> 403 Forbidden). |
+| `GET` | `/api/debug/metrics` | Telemetry diagnostic endpoint | **Protected**: Requires `ENABLE_DEBUG_ENDPOINTS=true` (default `false` -> 403 Forbidden). |
+| `POST` | `/api/track-login` | User telemetry event | Logs successful authentication into Google Cloud Logging. |
+| `POST` | `/api/track-failed-login` | Security telemetry event | Logs failed authentication attempts for anomaly detection. |
+
+---
+
+## 5. Lifecycle Behavior: From Startup to Peak Traffic
+
+### Phase 1: Zero Traffic / Offline (Scale to Zero)
+* **What happens**: Cloud Run notices 0 incoming HTTP requests for ~15 minutes and scales active container instances down to **0**.
+* **Resource consumption**: 0 CPU, 0 RAM, 0 cloud cost.
+* **Data integrity**: All past logs remain in Google Cloud Logging; all order numbers and acknowledged alerts remain in Firestore.
+
+### Phase 2: Cold Start (First Visitor Arrives)
+* A user hits `https://...run.app/shop` or `/developer/dashboard`.
+* Cloud Run automatically boots a container in ~1.5 to 2.5 seconds.
+* The container initializes GCP clients lazily via `_init_gcp()`.
+* The dashboard evaluates `now() - 7 days` and loads all logs from the past 7 days instantly.
+
+### Phase 3: Live Active Operation (Configurable Polling)
+* Once the Developer Dashboard is open in a browser:
+  * **Logs Polling**: Configured via `LOG_POLL_INTERVAL_MS` (default 5000 ms; demo mode 1000 ms).
+  * **Metrics Polling**: Configured via `METRICS_POLL_INTERVAL_MS` (default 5000 ms; demo mode 2500 ms).
+  * **In-Flight Lock Guards**: `_isFetchingLogs` and `_isFetchingMetrics` prevent request stacking if network latency spikes.
+  * **Zero-Flicker DOM Updates**: Only new log rows are prepended to the table, avoiding DOM clearing and page redraws.
+
+### Phase 4: Peak Traffic & Multi-Instance Auto-Scaling
+* If traffic surges (e.g. flash sale), Cloud Run automatically spawns multiple parallel container instances.
+* **Order IDs Never Collide**: Because order increments use Firestore atomic transactions (`metadata/order_counter`), instances never issue duplicate order IDs.
+* **Logs Stay Unified**: Every instance streams logs directly into the centralized Google Cloud Logging stream.
+
+---
+
+## 6. Configuration & Environment Variables
+
+| Variable | Default | Recommended Demo Value | Purpose |
+| :--- | :--- | :--- | :--- |
+| `ENABLE_ERROR_SIMULATION` | `false` | `true` | When `false`, blocks `/api/simulate-error` with HTTP 403. Enable only for demonstrations. |
+| `ENABLE_DEBUG_ENDPOINTS` | `false` | `false` | When `false`, blocks `/api/debug/metrics` with HTTP 403 to prevent internal diagnostic leaks. |
+| `LOG_POLL_INTERVAL_MS` | `5000` | `1000` | Dashboard log polling interval in milliseconds. |
+| `METRICS_POLL_INTERVAL_MS` | `5000` | `2500` | Dashboard infrastructure metrics polling interval in milliseconds. |
+| `GCP_PROJECT` | `shop-proj-thiru-9988` | `shop-proj-thiru-9988` | Google Cloud project identifier. |
+| `GCP_SERVICE_NAME` | `cloud-monitoring` | `cloud-monitoring` | Cloud Run service name used for filtering GCP Monitoring time series. |
+
+---
+
+## 7. Container & Deployment Configuration
+
+### Dockerfile
+```dockerfile
+FROM python:3.11-slim
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+COPY . .
+EXPOSE 5000
+CMD ["gunicorn", "--bind", "0.0.0.0:8080", "app:app"]
+```
+
+### Dependencies (`requirements.txt`)
+```text
+Flask>=3.0.0
+gunicorn>=21.0.0
+google-cloud-logging>=3.11.0
+google-cloud-monitoring>=2.22.0
+google-cloud-firestore>=2.14.0
+tzdata>=2024.1
+```
+
+### Deployment Command
+```bash
+gcloud run deploy cloud-monitoring \
+    --source . \
+    --project shop-proj-thiru-9988 \
+    --region us-central1 \
+    --allow-unauthenticated \
+    --set-env-vars ENABLE_ERROR_SIMULATION=true \
+    --quiet
+```
+
+---
+
+## 8. Verification & Testing Playbook
+
+To verify this application end-to-end, execute the following automated steps:
+
+1. **Verify IST Timestamps**:
+   Query `/api/monitoring/logs` and assert that all timestamp fields match regex `^\d{2}-[A-Za-z]{3}-\d{4} \d{2}:\d{2}:\d{2} (AM|PM) IST$`.
+2. **Verify Order Persistence**:
+   Call `POST /order` to create an order. Confirm the sequential ID incremented and `created_at` matches the exact value from `GET /order/<id>`.
+3. **Verify Alert Lifecycle**:
+   With `ENABLE_ERROR_SIMULATION=true`, call `POST /api/simulate-error`. Confirm an active alert appears with `status: ACTIVE`. Call `POST /api/monitoring/alerts/acknowledge` passing the `alert_id`. Confirm the alert transitions to `status: ACKNOWLEDGED` with an IST `acknowledged_at` timestamp and disappears from the Active Alerts section.
+4. **Verify Telemetry Authenticity**:
+   Call `GET /api/monitoring/metrics`. Confirm response contains `metrics_source: "google-cloud-monitoring"` and that absent metrics return `null` / `"N/A"` with `no_data: true` (zero simulated fallbacks).
+5. **Verify Endpoint Security**:
+   With `ENABLE_ERROR_SIMULATION=false`, call `POST /api/simulate-error` and verify response is HTTP 403 Forbidden.
+
+    </script>
+
+    <script>
+        const mdText = document.getElementById('markdown-data').textContent;
+        document.getElementById('content').innerHTML = marked.parse(mdText);
+    </script>
+</body>
+</html>

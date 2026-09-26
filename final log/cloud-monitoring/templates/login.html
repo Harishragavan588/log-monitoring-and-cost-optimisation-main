@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Portal — Login</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --primary-glow: rgba(79, 70, 229, 0.35);
+            --bg-grad-start: #0f172a;
+            --bg-grad-end: #1e1b4b;
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --card-border: rgba(255, 255, 255, 0.2);
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(circle at 20% 20%, #312e81 0%, #0f172a 60%, #030712 100%);
+            position: relative;
+            overflow-x: hidden;
+            padding: 20px;
+        }
+
+        /* Ambient background glow orbs */
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.5;
+        }
+        .orb-1 {
+            width: 320px;
+            height: 320px;
+            background: #6366f1;
+            top: 10%;
+            left: 15%;
+        }
+        .orb-2 {
+            width: 280px;
+            height: 280px;
+            background: #ec4899;
+            bottom: 10%;
+            right: 15%;
+        }
+
+        .auth-container {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 440px;
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            border-radius: 20px;
+            padding: 40px 36px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.3);
+            animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(16px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .brand-header {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+
+        .brand-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(79, 70, 229, 0.08);
+            border: 1px solid rgba(79, 70, 229, 0.2);
+            color: var(--primary);
+            padding: 6px 14px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .brand-title {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--text-main);
+            letter-spacing: -0.5px;
+        }
+
+        .brand-subtitle {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        /* Tabs for Sign In vs Register */
+        .auth-tabs {
+            display: flex;
+            background: #f1f5f9;
+            border-radius: 10px;
+            padding: 4px;
+            margin-bottom: 22px;
+        }
+
+        .auth-tab {
+            flex: 1;
+            text-align: center;
+            padding: 8px 12px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-muted);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+            background: transparent;
+        }
+
+        .auth-tab.active {
+            background: #ffffff;
+            color: var(--text-main);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #334155;
+            margin-bottom: 6px;
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 11px 14px;
+            border-radius: 10px;
+            border: 1.5px solid #cbd5e1;
+            font-size: 14px;
+            color: var(--text-main);
+            outline: none;
+            transition: all 0.2s ease;
+            background: #ffffff;
+        }
+
+        .form-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px var(--primary-glow);
+        }
+
+        .toggle-pwd-btn {
+            position: absolute;
+            right: 12px;
+            background: none;
+            border: none;
+            color: #64748b;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 4px 6px;
+        }
+
+        .btn-primary-action {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+            color: #ffffff;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px var(--primary-glow);
+            margin-top: 6px;
+        }
+
+        .btn-primary-action:hover {
+            background: linear-gradient(135deg, #4338ca 0%, #4f46e5 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px var(--primary-glow);
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            margin: 20px 0;
+            color: #94a3b8;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .divider::before, .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: #e2e8f0;
+        }
+        .divider span {
+            padding: 0 10px;
+        }
+
+        .btn-google {
+            width: 100%;
+            padding: 11px;
+            background: #ffffff;
+            color: #1e293b;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.2s ease;
+        }
+
+        .btn-google:hover {
+            background: #f8fafc;
+            border-color: #cbd5e1;
+            transform: translateY(-1px);
+        }
+
+        .google-icon {
+            width: 18px;
+            height: 18px;
+        }
+
+        #message {
+            margin-top: 14px;
+            font-size: 13px;
+            font-weight: 600;
+            text-align: center;
+            min-height: 20px;
+            transition: all 0.2s;
+        }
+        .msg-error { color: #ef4444; }
+        .msg-success { color: #10b981; }
+        .msg-info { color: #6366f1; }
+
+        .footer-note {
+            text-align: center;
+            margin-top: 18px;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+
+    <div class="auth-container">
+        <div class="brand-header">
+            <div class="brand-badge">✨ Cloud Telemetry Active</div>
+            <h1 class="brand-title">Customer Portal</h1>
+            <p class="brand-subtitle">Sign in to access your dashboard and shopping cart</p>
+        </div>
+
+        <!-- Mode Toggle Tabs -->
+        <div class="auth-tabs">
+            <button class="auth-tab active" id="tabLogin" onclick="switchMode('login')">Log In</button>
+            <button class="auth-tab" id="tabRegister" onclick="switchMode('register')">Create Account</button>
+        </div>
+
+        <form onsubmit="return false;">
+            <div class="form-group">
+                <label class="form-label" for="email">Email Address</label>
+                <div class="input-wrapper">
+                    <input type="email" class="form-input" id="email" placeholder="name@example.com" required autocomplete="email">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="password">Password</label>
+                <div class="input-wrapper">
+                    <input type="password" class="form-input" id="password" placeholder="••••••••" required autocomplete="current-password">
+                    <button type="button" class="toggle-pwd-btn" id="togglePassword">Show</button>
+                </div>
+            </div>
+
+            <button id="primaryAuthBtn" class="btn-primary-action">Log In</button>
+        </form>
+
+        <div class="divider">
+            <span>or continue with</span>
+        </div>
+
+        <button id="googleBtn" class="btn-google">
+            <svg class="google-icon" viewBox="0 0 24 24">
+                <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"/>
+                <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.26v3.15C3.26 21.36 7.34 24 12 24z"/>
+                <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.26C.46 8.16 0 9.94 0 12s.46 3.84 1.26 5.42l4.02-3.15z"/>
+                <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.34 0 3.26 2.64 1.26 6.58l4.02 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
+            </svg>
+            Google Account
+        </button>
+
+        <div id="message"></div>
+
+        <div class="footer-note">
+            Protected by Cloud Identity & Google Cloud Operations
+        </div>
+    </div>
+
+    <!-- Firebase SDKs & Authentication Logic -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCok_jgUIsQfi_oQuGLJm2U1MDezfRuoNY",
+            authDomain: "shop-proj-thiru-9988-firebase.firebaseapp.com",
+            projectId: "shop-proj-thiru-9988-firebase",
+            storageBucket: "shop-proj-thiru-9988-firebase.firebasestorage.app",
+            messagingSenderId: "67431124006",
+            appId: "1:67431124006:web:f50e0d5db3fb4ed7972ae7",
+            measurementId: "G-CVLY1FT6WC"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const provider = new GoogleAuthProvider();
+
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const msgElement = document.getElementById('message');
+        const togglePasswordBtn = document.getElementById('togglePassword');
+        const primaryAuthBtn = document.getElementById('primaryAuthBtn');
+
+        let currentMode = 'login'; // 'login' or 'register'
+
+        window.switchMode = function(mode) {
+            currentMode = mode;
+            const tabLogin = document.getElementById('tabLogin');
+            const tabRegister = document.getElementById('tabRegister');
+            if (mode === 'login') {
+                tabLogin.classList.add('active');
+                tabRegister.classList.remove('active');
+                primaryAuthBtn.innerText = 'Log In';
+            } else {
+                tabRegister.classList.add('active');
+                tabLogin.classList.remove('active');
+                primaryAuthBtn.innerText = 'Create Account';
+            }
+            msgElement.innerText = '';
+        };
+
+        function setMessage(text, type) {
+            msgElement.innerText = text;
+            msgElement.className = type === 'error' ? 'msg-error' : type === 'success' ? 'msg-success' : 'msg-info';
+        }
+
+        function getFriendlyErrorMessage(error) {
+            switch (error.code) {
+                case 'auth/invalid-email': return "Please enter a valid email address.";
+                case 'auth/wrong-password':
+                case 'auth/invalid-credential': return "Invalid email or password.";
+                case 'auth/user-not-found': return "No user account found with this email.";
+                case 'auth/email-already-in-use': return "An account already exists with this email.";
+                case 'auth/weak-password': return "Password should be at least 6 characters long.";
+                case 'auth/popup-closed-by-user': return "Google sign-in popup was closed.";
+                default: return error.message;
+            }
+        }
+
+        togglePasswordBtn.addEventListener('click', () => {
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                togglePasswordBtn.innerText = 'Hide';
+            } else {
+                passwordInput.type = 'password';
+                togglePasswordBtn.innerText = 'Show';
+            }
+        });
+
+        primaryAuthBtn.addEventListener('click', () => {
+            if (!emailInput.value || !passwordInput.value) {
+                setMessage("Please enter both email and password.", "error");
+                return;
+            }
+
+            if (currentMode === 'login') {
+                setMessage("Authenticating...", "info");
+                signInWithEmailAndPassword(auth, emailInput.value, passwordInput.value)
+                    .then(() => {
+                        setMessage("Login Successful! Redirecting to shop...", "success");
+                        fetch('/api/track-login', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({type:'Email/Password'})}).catch(()=>{});
+                        setTimeout(() => { window.location.href = "/shop"; }, 800);
+                    })
+                    .catch((error) => {
+                        setMessage(getFriendlyErrorMessage(error), "error");
+                        fetch('/api/track-failed-login', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({type:'Email/Password', reason: error.code})}).catch(()=>{});
+                    });
+            } else {
+                setMessage("Creating account...", "info");
+                createUserWithEmailAndPassword(auth, emailInput.value, passwordInput.value)
+                    .then(() => {
+                        setMessage("Account Created! Redirecting...", "success");
+                        fetch('/api/track-login', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({type:'Registration'})}).catch(()=>{});
+                        setTimeout(() => { window.location.href = "/shop"; }, 800);
+                    })
+                    .catch((error) => {
+                        setMessage(getFriendlyErrorMessage(error), "error");
+                    });
+            }
+        });
+
+        document.getElementById('googleBtn').addEventListener('click', () => {
+            setMessage("Signing in with Google...", "info");
+            signInWithPopup(auth, provider)
+                .then(() => {
+                    setMessage("Google Authentication Successful! Redirecting...", "success");
+                    fetch('/api/track-login', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({type:'Google-OAuth'})}).catch(()=>{});
+                    setTimeout(() => { window.location.href = "/shop"; }, 800);
+                })
+                .catch((error) => {
+                    setMessage(getFriendlyErrorMessage(error), "error");
+                    fetch('/api/track-failed-login', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({type:'Google-OAuth', reason: error.code})}).catch(()=>{});
+                });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,6 @@
+Flask>=3.0.0
+gunicorn>=21.0.0
+google-cloud-logging>=3.11.0
+google-cloud-monitoring>=2.22.0
+google-cloud-firestore>=2.14.0
+tzdata>=2024.1

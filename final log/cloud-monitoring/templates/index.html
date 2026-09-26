@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Commerce Telemetry Store — Next-Gen Tech Gear</title>
+    <meta name="description" content="Explore high-tech gadgets and live telemetry e-commerce experience.">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --primary-light: #eef2ff;
+            --accent: #06b6d4;
+            --dark: #0f172a;
+            --light-bg: #f8fafc;
+            --card-border: #e2e8f0;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --success: #10b981;
+            --warning: #f59e0b;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--light-bg);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ─── Hero Header ─── */
+        .hero-banner {
+            background: radial-gradient(circle at 80% 20%, rgba(6, 182, 212, 0.12), transparent 40%),
+                        radial-gradient(circle at 20% 80%, rgba(79, 70, 229, 0.15), transparent 45%),
+                        #0f172a;
+            color: #ffffff;
+            padding: 50px 0 44px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            text-align: center;
+        }
+
+        .hero-title {
+            font-size: 2.4rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            margin-bottom: 12px;
+        }
+
+        .hero-gradient-text {
+            background: linear-gradient(135deg, #38bdf8, #818cf8, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-subtitle {
+            color: #94a3b8;
+            font-size: 1.05rem;
+            max-width: 600px;
+            margin: 0 auto 20px;
+            line-height: 1.6;
+        }
+
+        .telemetry-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            color: #cbd5e1;
+            margin-bottom: 16px;
+        }
+
+        /* ─── Product Card ─── */
+        .product-card {
+            background: #ffffff;
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            overflow: hidden;
+            transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .product-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
+            border-color: #cbd5e1;
+        }
+
+        .product-img-box {
+            background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+            height: 160px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4.2rem;
+            position: relative;
+            user-select: none;
+        }
+
+        .product-badge {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 4px 9px;
+            border-radius: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .badge-hot { background: #fee2e2; color: #ef4444; }
+        .badge-new { background: #e0f2fe; color: #0284c7; }
+        .badge-pro { background: #fef3c7; color: #d97706; }
+
+        .product-body {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+        }
+
+        .product-category {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-bottom: 6px;
+        }
+
+        .product-name {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 8px;
+            line-height: 1.3;
+        }
+
+        .product-desc {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 14px;
+            line-height: 1.5;
+            flex: 1;
+        }
+
+        .spec-list {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 16px;
+            font-size: 0.78rem;
+            color: #475569;
+        }
+
+        .spec-list li {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 4px;
+        }
+
+        .product-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-top: 14px;
+            border-top: 1px solid #f1f5f9;
+        }
+
+        .product-price {
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: var(--text-main);
+        }
+
+        .product-price span {
+            font-size: 0.78rem;
+            font-weight: 500;
+            color: var(--text-muted);
+        }
+
+        .qty-control {
+            display: inline-flex;
+            align-items: center;
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            overflow: hidden;
+            background: #ffffff;
+        }
+
+        .qty-btn {
+            background: #f8fafc;
+            border: none;
+            width: 28px;
+            height: 28px;
+            font-weight: 700;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .qty-btn:hover { background: #e2e8f0; }
+
+        .qty-val {
+            width: 32px;
+            text-align: center;
+            border: none;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .btn-order-now {
+            background: var(--primary);
+            color: white;
+            border: none;
+            font-weight: 600;
+            font-size: 0.85rem;
+            padding: 8px 16px;
+            border-radius: 8px;
+            transition: background 0.18s, transform 0.15s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-order-now:hover {
+            background: var(--primary-hover);
+            transform: translateY(-1px);
+            color: white;
+        }
+
+        /* ─── Glass Panels ─── */
+        .glass-panel {
+            background: #ffffff;
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 28px;
+            box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
+            height: 100%;
+        }
+
+        .panel-heading {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: var(--text-main);
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .panel-sub {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+        }
+
+        /* ─── Category Filter Pills ─── */
+        .filter-pill {
+            background: #ffffff;
+            border: 1px solid var(--card-border);
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            font-weight: 600;
+            padding: 7px 18px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.18s;
+            user-select: none;
+        }
+
+        .filter-pill:hover,
+        .filter-pill.active {
+            background: var(--primary);
+            color: #ffffff;
+            border-color: var(--primary);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
+        }
+
+        /* ─── Order Tracking Stepper ─── */
+        .stepper {
+            display: flex;
+            justify-content: space-between;
+            position: relative;
+            margin: 24px 0 16px;
+        }
+
+        .stepper::before {
+            content: '';
+            position: absolute;
+            top: 14px;
+            left: 20px;
+            right: 20px;
+            height: 3px;
+            background: #e2e8f0;
+            z-index: 1;
+        }
+
+        .stepper-progress {
+            position: absolute;
+            top: 14px;
+            left: 20px;
+            width: 60%;
+            height: 3px;
+            background: var(--success);
+            z-index: 2;
+        }
+
+        .step-node {
+            position: relative;
+            z-index: 3;
+            text-align: center;
+            width: 70px;
+        }
+
+        .step-circle {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #ffffff;
+            border: 3px solid #cbd5e1;
+            margin: 0 auto 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--text-muted);
+        }
+
+        .step-node.completed .step-circle {
+            background: var(--success);
+            border-color: var(--success);
+            color: white;
+        }
+
+        .step-node.active .step-circle {
+            background: #ffffff;
+            border-color: var(--primary);
+            color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.2);
+        }
+
+        .step-label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            line-height: 1.2;
+        }
+
+        .step-node.completed .step-label,
+        .step-node.active .step-label {
+            color: var(--text-main);
+            font-weight: 700;
+        }
+
+        /* ─── Floating Toast Alert ─── */
+        .toast-container-custom {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 2000;
+        }
+
+        .toast-custom {
+            background: #0f172a;
+            color: white;
+            border-left: 4px solid var(--success);
+            border-radius: 12px;
+            padding: 16px 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            max-width: 360px;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ════════════════════ HERO HEADER ════════════════════ -->
+    <header class="hero-banner">
+        <div class="container">
+            <div class="telemetry-chip">
+                <span>📡 Live Telemetry Connected</span>
+            </div>
+            <h1 class="hero-title">E-Commerce <span class="hero-gradient-text">Telemetry Store</span></h1>
+            <p class="hero-subtitle">
+                Explore our high-performance gear with full specifications. Click "Order Now" on any product or place a custom order below.
+            </p>
+        </div>
+    </header>
+
+    <!-- ════════════════════ MAIN CONTENT ════════════════════ -->
+    <main class="container py-5 flex-1">
+
+        <!-- Category Filters -->
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+            <div>
+                <h2 class="fw-bold mb-1" style="font-size: 1.5rem;">🔥 Featured Products &amp; Specs</h2>
+                <p class="text-muted mb-0" style="font-size: 0.88rem;">Select an item to place an order with instant event logging.</p>
+            </div>
+            <div class="d-flex gap-2 flex-wrap">
+                <span class="filter-pill active" onclick="filterCategory('all')">All Products</span>
+                <span class="filter-pill" onclick="filterCategory('accessories')">Accessories</span>
+                <span class="filter-pill" onclick="filterCategory('audio')">Audio</span>
+                <span class="filter-pill" onclick="filterCategory('displays')">Displays</span>
+            </div>
+        </div>
+
+        <!-- Product Catalog Grid with Pictures & Specifications -->
+        <div class="row g-4 mb-5" id="productGrid">
+            
+            <!-- Product 1 -->
+            <div class="col-lg-4 col-md-6 product-item" data-category="accessories">
+                <div class="product-card">
+                    <div class="product-img-box">
+                        <span class="product-badge badge-hot">Best Seller</span>
+                        🖱️
+                    </div>
+                    <div class="product-body">
+                        <span class="product-category">Accessories</span>
+                        <h3 class="product-name">Logitech MX Master 3S</h3>
+                        <p class="product-desc">Ergonomic wireless precision mouse for creators and developers.</p>
+                        
+                        <!-- Specifications -->
+                        <ul class="spec-list">
+                            <li>⚡ <b>Sensor:</b> 8,000 DPI Darkfield</li>
+                            <li>🔋 <b>Battery:</b> 70-day USB-C Quick Charge</li>
+                            <li>🔇 <b>Clicks:</b> 90% Quiet Click Technology</li>
+                        </ul>
+
+                        <div class="product-footer">
+                            <div class="product-price">$99 <span>USD</span></div>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="qty-control">
+                                    <button class="qty-btn" onclick="adjustQty('qty-1', -1)">-</button>
+                                    <input type="text" class="qty-val" id="qty-1" value="1" readonly>
+                                    <button class="qty-btn" onclick="adjustQty('qty-1', 1)">+</button>
+                                </div>
+                                <button class="btn-order-now" onclick="placeDirectOrder('Logitech MX Master 3S', 'qty-1')">
+                                    Order Now
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Product 2 -->
+            <div class="col-lg-4 col-md-6 product-item" data-category="accessories">
+                <div class="product-card">
+                    <div class="product-img-box">
+                        <span class="product-badge badge-new">New Release</span>
+                        ⌨️
+                    </div>
+                    <div class="product-body">
+                        <span class="product-category">Accessories</span>
+                        <h3 class="product-name">Keychron Q1 Pro RGB</h3>
+                        <p class="product-desc">Full CNC aluminum custom wireless mechanical keyboard.</p>
+                        
+                        <!-- Specifications -->
+                        <ul class="spec-list">
+                            <li>🎛️ <b>Switches:</b> Hot-swappable Gateron Jupiter</li>
+                            <li>📶 <b>Connectivity:</b> Bluetooth 5.1 &amp; Type-C</li>
+                            <li>💡 <b>Lighting:</b> South-facing RGB Backlight</li>
+                        </ul>
+
+                        <div class="product-footer">
+                            <div class="product-price">$199 <span>USD</span></div>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="qty-control">
+                                    <button class="qty-btn" onclick="adjustQty('qty-2', -1)">-</button>
+                                    <input type="text" class="qty-val" id="qty-2" value="1" readonly>
+                                    <button class="qty-btn" onclick="adjustQty('qty-2', 1)">+</button>
+                                </div>
+                                <button class="btn-order-now" onclick="placeDirectOrder('Keychron Q1 Pro RGB Keyboard', 'qty-2')">
+                                    Order Now
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Product 3 -->
+            <div class="col-lg-4 col-md-6 product-item" data-category="audio">
+                <div class="product-card">
+                    <div class="product-img-box">
+                        <span class="product-badge badge-pro">Studio Grade</span>
+                        🎧
+                    </div>
+                    <div class="product-body">
+                        <span class="product-category">Audio</span>
+                        <h3 class="product-name">Sony WH-1000XM5 ANC</h3>
+                        <p class="product-desc">Industry-leading wireless active noise cancelling headphones.</p>
+                        
+                        <!-- Specifications -->
+                        <ul class="spec-list">
+                            <li>🔇 <b>ANC:</b> Auto NC Optimizer with 8 Mics</li>
+                            <li>🎵 <b>Audio:</b> Hi-Res LDAC &amp; DSEE Extreme</li>
+                            <li>🔋 <b>Battery:</b> 30 Hours Continuous Playback</li>
+                        </ul>
+
+                        <div class="product-footer">
+                            <div class="product-price">$349 <span>USD</span></div>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="qty-control">
+                                    <button class="qty-btn" onclick="adjustQty('qty-3', -1)">-</button>
+                                    <input type="text" class="qty-val" id="qty-3" value="1" readonly>
+                                    <button class="qty-btn" onclick="adjustQty('qty-3', 1)">+</button>
+                                </div>
+                                <button class="btn-order-now" onclick="placeDirectOrder('Sony WH-1000XM5 ANC Headphones', 'qty-3')">
+                                    Order Now
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Product 4 -->
+            <div class="col-lg-4 col-md-6 product-item" data-category="displays">
+                <div class="product-card">
+                    <div class="product-img-box">
+                        <span class="product-badge badge-pro">4K HDR</span>
+                        🖥️
+                    </div>
+                    <div class="product-body">
+                        <span class="product-category">Displays</span>
+                        <h3 class="product-name">Dell UltraSharp 27" 4K</h3>
+                        <p class="product-desc">IPS Black technology hub monitor with true color accuracy.</p>
+                        
+                        <!-- Specifications -->
+                        <ul class="spec-list">
+                            <li>📐 <b>Panel:</b> 27" 4K UHD (3840x2160) IPS</li>
+                            <li>🔌 <b>Hub:</b> 90W USB-C PD &amp; RJ45 Ethernet</li>
+                            <li>🎨 <b>Color:</b> 98% DCI-P3 &amp; VESA DisplayHDR 400</li>
+                        </ul>
+
+                        <div class="product-footer">
+                            <div class="product-price">$579 <span>USD</span></div>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="qty-control">
+                                    <button class="qty-btn" onclick="adjustQty('qty-4', -1)">-</button>
+                                    <input type="text" class="qty-val" id="qty-4" value="1" readonly>
+                                    <button class="qty-btn" onclick="adjustQty('qty-4', 1)">+</button>
+                                </div>
+                                <button class="btn-order-now" onclick="placeDirectOrder('Dell UltraSharp 27 4K Monitor', 'qty-4')">
+                                    Order Now
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Product 5 -->
+            <div class="col-lg-4 col-md-6 product-item" data-category="accessories">
+                <div class="product-card">
+                    <div class="product-img-box">
+                        <span class="product-badge badge-new">Smart Gear</span>
+                        ⌚
+                    </div>
+                    <div class="product-body">
+                        <span class="product-category">Accessories</span>
+                        <h3 class="product-name">Google Pixel Watch 3</h3>
+                        <p class="product-desc">Advanced fitness tracking with AMOLED Always-on display.</p>
+                        
+                        <!-- Specifications -->
+                        <ul class="spec-list">
+                            <li>💎 <b>Display:</b> 2,000 nits Actua AMOLED Display</li>
+                            <li>❤️ <b>Sensors:</b> ECG, SpO2 &amp; Skin Temperature</li>
+                            <li>💧 <b>Rating:</b> 5 ATM Water Resistance</li>
+                        </ul>
+
+                        <div class="product-footer">
+                            <div class="product-price">$349 <span>USD</span></div>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="qty-control">
+                                    <button class="qty-btn" onclick="adjustQty('qty-5', -1)">-</button>
+                                    <input type="text" class="qty-val" id="qty-5" value="1" readonly>
+                                    <button class="qty-btn" onclick="adjustQty('qty-5', 1)">+</button>
+                                </div>
+                                <button class="btn-order-now" onclick="placeDirectOrder('Google Pixel Watch 3', 'qty-5')">
+                                    Order Now
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Product 6 -->
+            <div class="col-lg-4 col-md-6 product-item" data-category="accessories">
+                <div class="product-card">
+                    <div class="product-img-box">
+                        <span class="product-badge badge-hot">Creator Pick</span>
+                        📷
+                    </div>
+                    <div class="product-body">
+                        <span class="product-category">Accessories</span>
+                        <h3 class="product-name">Elgato Facecam Pro 4K</h3>
+                        <p class="product-desc">Studio-grade 4K60 optics for streaming and video conferencing.</p>
+                        
+                        <!-- Specifications -->
+                        <ul class="spec-list">
+                            <li>🎥 <b>Video:</b> True 4K60 Uncompressed Capture</li>
+                            <li>🔭 <b>Lens:</b> 21 mm f/2.0 Elgato Premium Optics</li>
+                            <li>👁️ <b>Sensor:</b> 1/1.8" Sony STARVIS CMOS</li>
+                        </ul>
+
+                        <div class="product-footer">
+                            <div class="product-price">$299 <span>USD</span></div>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="qty-control">
+                                    <button class="qty-btn" onclick="adjustQty('qty-6', -1)">-</button>
+                                    <input type="text" class="qty-val" id="qty-6" value="1" readonly>
+                                    <button class="qty-btn" onclick="adjustQty('qty-6', 1)">+</button>
+                                </div>
+                                <button class="btn-order-now" onclick="placeDirectOrder('Elgato Facecam Pro 4K', 'qty-6')">
+                                    Order Now
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ════════════════════ ORDER CREATION & TRACKING SECTIONS ════════════════════ -->
+        <div class="row g-4">
+            
+            <!-- 1. Custom / Manual Order Section -->
+            <div class="col-lg-6">
+                <div class="glass-panel">
+                    <h3 class="panel-heading">
+                        <span>📦 Place Custom Order</span>
+                    </h3>
+                    <p class="panel-sub">Enter any custom item name and quantity to place an order.</p>
+
+                    <form id="orderForm" novalidate>
+                        <div class="mb-3">
+                            <label for="item" class="form-label fw-semibold">
+                                Item Name <span class="text-danger">*</span>
+                            </label>
+                            <input 
+                                type="text" 
+                                class="form-control" 
+                                id="item" 
+                                placeholder="Enter item name (e.g. Wireless Mouse)" 
+                                value="" 
+                                required
+                            >
+                            <div class="invalid-feedback" id="itemFeedback">
+                                Item name cannot be empty. Please enter an item name.
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="quantity" class="form-label fw-semibold">
+                                Quantity <span class="text-danger">*</span>
+                            </label>
+                            <input 
+                                type="number" 
+                                class="form-control" 
+                                id="quantity" 
+                                value="1" 
+                                min="1" 
+                                required
+                            >
+                            <div class="invalid-feedback">
+                                Quantity must be at least 1.
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100 py-2 fw-bold" style="background: var(--primary); border: none;">
+                            Submit Custom Order
+                        </button>
+                    </form>
+
+                    <div id="orderResult" class="mt-3"></div>
+                </div>
+            </div>
+
+            <!-- 2. Track / Lookup Order Section -->
+            <div class="col-lg-6">
+                <div class="glass-panel">
+                    <h3 class="panel-heading">
+                        <span>🔍 Track / Lookup Order</span>
+                    </h3>
+                    <p class="panel-sub">Enter an Order ID to check its current status in the database.</p>
+
+                    <div class="mb-3">
+                        <label for="orderId" class="form-label fw-semibold">Order ID</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light fw-bold">#</span>
+                            <input 
+                                type="number" 
+                                class="form-control" 
+                                id="orderId" 
+                                placeholder="e.g. 1" 
+                                value="1" 
+                                min="1" 
+                                required
+                            >
+                            <button id="lookupBtn" class="btn btn-dark px-4 fw-semibold">Check Order Status</button>
+                        </div>
+                    </div>
+
+                    <div id="lookupResult" class="mt-4"></div>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- ════════════════════ FLOATING TOAST NOTIFICATIONS ════════════════════ -->
+    <div class="toast-container-custom" id="toastBox"></div>
+
+    <!-- ════════════════════ JAVASCRIPT LOGIC ════════════════════ -->
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // Quantity Controls in Product Cards
+        function adjustQty(elementId, change) {
+            const input = document.getElementById(elementId);
+            let val = parseInt(input.value) || 1;
+            val = Math.max(1, Math.min(99, val + change));
+            input.value = val;
+        }
+
+        // Toast Notification Helper
+        function showToast(title, message, icon = '🎉') {
+            const toastBox = document.getElementById('toastBox');
+            const toast = document.createElement('div');
+            toast.className = 'toast-custom';
+            toast.innerHTML = `
+                <div style="font-size: 1.5rem;">${icon}</div>
+                <div>
+                    <h6 class="fw-bold mb-1" style="font-size: 0.9rem;">${title}</h6>
+                    <p class="mb-0 text-light" style="font-size: 0.8rem; opacity: 0.85;">${message}</p>
+                </div>
+            `;
+            toastBox.appendChild(toast);
+            setTimeout(() => {
+                toast.style.transition = 'opacity 0.3s, transform 0.3s';
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(10px)';
+                setTimeout(() => toast.remove(), 300);
+            }, 4500);
+        }
+
+        // 1-Click Direct Order from Product Cards (POST /order)
+        async function placeDirectOrder(itemName, qtyInputId) {
+            const qty = parseInt(document.getElementById(qtyInputId).value) || 1;
+            
+            try {
+                const response = await fetch('/order', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ item: itemName, quantity: qty })
+                });
+                const data = await response.json();
+
+                if (response.ok) {
+                    showToast(
+                        `Order #${data.id} Created!`,
+                        `Placed order for ${qty}x ${itemName}. Telemetry recorded.`
+                    );
+                    document.getElementById('orderId').value = data.id;
+                    fetchAndRenderOrder(data.id);
+                } else {
+                    showToast('Order Failed', data.error || 'Server error', '⚠️');
+                }
+            } catch (err) {
+                showToast('Network Error', 'Could not connect to server', '❌');
+            }
+        }
+
+        // Handle Custom Order Submission (POST /order) with Strict Validation
+        document.getElementById('orderForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const itemInput = document.getElementById('item');
+            const quantityInput = document.getElementById('quantity');
+            const resultDiv = document.getElementById('orderResult');
+
+            const item = itemInput.value.trim();
+            const quantity = parseInt(quantityInput.value);
+
+            // Strict Validation: Item name cannot be empty or whitespace only
+            if (!item || item.length === 0) {
+                itemInput.classList.add('is-invalid');
+                resultDiv.innerHTML = `
+                    <div class="alert alert-danger border-0 d-flex align-items-center gap-2">
+                        <span>⚠️</span>
+                        <div><b>Error:</b> Item name is required. Please enter an item name.</div>
+                    </div>`;
+                itemInput.focus();
+                return;
+            } else {
+                itemInput.classList.remove('is-invalid');
+            }
+
+            if (isNaN(quantity) || quantity < 1) {
+                quantityInput.classList.add('is-invalid');
+                resultDiv.innerHTML = `
+                    <div class="alert alert-danger border-0 d-flex align-items-center gap-2">
+                        <span>⚠️</span>
+                        <div><b>Error:</b> Quantity must be at least 1.</div>
+                    </div>`;
+                quantityInput.focus();
+                return;
+            } else {
+                quantityInput.classList.remove('is-invalid');
+            }
+
+            resultDiv.innerHTML = `<div class="text-muted py-2">Submitting order...</div>`;
+
+            try {
+                const response = await fetch('/order', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ item, quantity })
+                });
+                const data = await response.json();
+                
+                if (response.ok) {
+                    const placedTime = data.created_at ? `<div class="text-muted small mt-1">📅 Placed: <b>${data.created_at}</b></div>` : '';
+                    resultDiv.innerHTML = `
+                        <div class="alert alert-success border-0 shadow-sm d-flex align-items-center gap-2">
+                            <span>✅</span>
+                            <div>
+                                <div>Order Created! ID: <b>${data.id}</b></div>
+                                ${placedTime}
+                            </div>
+                        </div>`;
+                    showToast(`Order #${data.id} Confirmed!`, `${quantity}x ${item} placed successfully.`);
+                    document.getElementById('orderId').value = data.id;
+                    fetchAndRenderOrder(data.id);
+                    itemInput.value = '';
+                } else {
+                    resultDiv.innerHTML = `<div class="alert alert-danger">${data.error}</div>`;
+                }
+            } catch (err) {
+                resultDiv.innerHTML = `<div class="alert alert-danger">Failed to connect to server.</div>`;
+            }
+        });
+
+        // Handle Order Lookup (GET /order/<id>)
+        async function fetchAndRenderOrder(id) {
+            const resultDiv = document.getElementById('lookupResult');
+            if (!id) {
+                resultDiv.innerHTML = `<div class="alert alert-warning">Please enter an Order ID.</div>`;
+                return;
+            }
+
+            resultDiv.innerHTML = `<div class="text-center py-3 text-muted"><div class="spinner-border spinner-border-sm text-primary"></div> Fetching order details...</div>`;
+
+            try {
+                const response = await fetch(`/order/${id}`);
+                const data = await response.json();
+
+                if (response.ok) {
+                    const timeInfo = data.created_at ? `<div class="text-muted mt-1" style="font-size: 0.82rem;">📅 Placed: <b>${data.created_at}</b></div>` : '';
+                    resultDiv.innerHTML = `
+                        <div class="card border-0 bg-light p-3 rounded-4 shadow-sm">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div>
+                                    <span class="badge bg-success mb-1">Order #${id} Confirmed</span>
+                                    <h5 class="fw-bold mb-0 text-dark">${data.item}</h5>
+                                    <span class="text-muted" style="font-size: 0.85rem;">Quantity: <b>${data.quantity} units</b></span>
+                                    ${timeInfo}
+                                </div>
+                                <span class="fs-2">📦</span>
+                            </div>
+                            
+                            <!-- Visual Delivery Stepper -->
+                            <div class="stepper">
+                                <div class="stepper-progress"></div>
+                                <div class="step-node completed">
+                                    <div class="step-circle">✓</div>
+                                    <div class="step-label">Placed</div>
+                                </div>
+                                <div class="step-node completed">
+                                    <div class="step-circle">✓</div>
+                                    <div class="step-label">Processing</div>
+                                </div>
+                                <div class="step-node active">
+                                    <div class="step-circle">🚚</div>
+                                    <div class="step-label">In Transit</div>
+                                </div>
+                                <div class="step-node">
+                                    <div class="step-circle">🏠</div>
+                                    <div class="step-label">Delivered</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="alert alert-danger border-0 d-flex align-items-center gap-2">
+                            <span>⚠️</span>
+                            <div>${data.error || 'Order not found in server records.'}</div>
+                        </div>`;
+                }
+            } catch (err) {
+                resultDiv.innerHTML = `<div class="alert alert-danger">Error connecting to server.</div>`;
+            }
+        }
+
+        document.getElementById('lookupBtn').addEventListener('click', () => {
+            const id = document.getElementById('orderId').value;
+            fetchAndRenderOrder(id);
+        });
+
+        // Category Filter Logic
+        function filterCategory(cat) {
+            document.querySelectorAll('.filter-pill').forEach(el => el.classList.remove('active'));
+            event.target.classList.add('active');
+
+            const items = document.querySelectorAll('.product-item');
+            items.forEach(item => {
+                if (cat === 'all' || item.getAttribute('data-category') === cat) {
+                    item.style.display = 'block';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        }
+    </script>
+</body>
+</html>

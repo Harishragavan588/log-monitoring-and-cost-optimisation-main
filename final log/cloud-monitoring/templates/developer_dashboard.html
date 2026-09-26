@@ -1,0 +1,2143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cloud Monitoring Dashboard</title>
+    <meta name="description" content="Real-time cloud monitoring dashboard — log analysis, alerting, and infrastructure cost optimization.">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* ─── Design Tokens ─── */
+        :root {
+            --sidebar-bg:        #0f172a;
+            --sidebar-text:      #94a3b8;
+            --sidebar-active-bg: rgba(59,130,246,0.12);
+            --sidebar-active:    #60a5fa;
+            --bg:                #f1f5f9;
+            --card-bg:           #ffffff;
+            --card-border:       #e2e8f0;
+            --text-primary:      #0f172a;
+            --text-muted:        #64748b;
+            --clr-info:          #0ea5e9;
+            --clr-info-bg:       #e0f2fe;
+            --clr-warning:       #f59e0b;
+            --clr-warning-bg:    #fef3c7;
+            --clr-error:         #ef4444;
+            --clr-error-bg:      #fee2e2;
+            --clr-success:       #10b981;
+            --clr-success-bg:    #d1fae5;
+            --clr-indigo:        #6366f1;
+        }
+
+        /* ─── Reset & Base ─── */
+        *, *::before, *::after { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text-primary);
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* ════════════════════ SIDEBAR ════════════════════ */
+        .sidebar {
+            width: 245px;
+            min-width: 245px;
+            background: var(--sidebar-bg);
+            display: flex;
+            flex-direction: column;
+            padding: 24px 14px;
+            position: fixed;
+            top: 0; left: 0;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 200;
+        }
+
+        .sidebar-brand {
+            padding: 0 8px 22px;
+            border-bottom: 1px solid rgba(255,255,255,0.07);
+            margin-bottom: 20px;
+        }
+
+        .brand-icon {
+            width: 38px; height: 38px;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 19px;
+            margin-bottom: 10px;
+        }
+
+        .sidebar-brand h5 {
+            color: #f1f5f9;
+            font-weight: 700;
+            font-size: 15px;
+            margin: 0 0 3px;
+        }
+
+        .sidebar-brand p {
+            color: var(--sidebar-text);
+            font-size: 11px;
+            margin: 0;
+            line-height: 1.4;
+        }
+
+        .nav-section-label {
+            color: #475569;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.09em;
+            text-transform: uppercase;
+            padding: 0 8px;
+            margin-bottom: 8px;
+        }
+
+        .sidebar-nav { list-style: none; padding: 0; margin: 0; }
+        .sidebar-nav li { margin-bottom: 2px; }
+
+        .nav-btn {
+            background: none;
+            border: none;
+            width: 100%;
+            text-align: left;
+            color: var(--sidebar-text);
+            font-size: 13.5px;
+            font-weight: 500;
+            font-family: 'Inter', sans-serif;
+            padding: 10px 12px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: background 0.18s, color 0.18s;
+        }
+
+        .nav-btn:hover { background: rgba(255,255,255,0.06); color: #e2e8f0; }
+
+        .nav-btn.active {
+            background: var(--sidebar-active-bg);
+            color: var(--sidebar-active);
+        }
+
+        .nav-icon { font-size: 16px; width: 20px; text-align: center; flex-shrink: 0; }
+
+        .nav-label { flex: 1; }
+
+        .alert-badge {
+            background: var(--clr-error);
+            color: white;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 1px 7px;
+            min-width: 20px;
+            text-align: center;
+            display: none;
+            animation: badgePop 0.3s ease;
+        }
+        .alert-badge.visible { display: inline-block; }
+
+        @keyframes badgePop {
+            0%   { transform: scale(0.6); opacity: 0; }
+            80%  { transform: scale(1.15); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* ════════════════════ MAIN CONTENT ════════════════════ */
+        .main-content {
+            margin-left: 245px;
+            flex: 1;
+            padding: 28px 28px 48px;
+            min-height: 100vh;
+        }
+
+        /* ─── Page Header ─── */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .page-header h1 {
+            font-size: 21px;
+            font-weight: 800;
+            color: var(--text-primary);
+            margin: 0 0 4px;
+            letter-spacing: -0.3px;
+        }
+
+        .page-header p {
+            color: var(--text-muted);
+            font-size: 13px;
+            margin: 0;
+        }
+
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            background: #f0fdf4;
+            color: #15803d;
+            border: 1px solid #bbf7d0;
+            border-radius: 20px;
+            padding: 5px 14px;
+            font-size: 12px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .status-dot {
+            width: 7px; height: 7px;
+            background: #22c55e;
+            border-radius: 50%;
+            animation: pulse 2.2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50%       { opacity: 0.35; }
+        }
+
+        /* ─── Section Visibility ─── */
+        .dash-section { display: none; }
+        .dash-section.active {
+            display: block;
+            animation: fadeIn 0.22s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(7px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ─── Summary Cards ─── */
+        .summary-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 20px 20px 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.18s, box-shadow 0.18s;
+        }
+
+        .summary-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 16px rgba(0,0,0,0.08);
+        }
+
+        .card-accent {
+            position: absolute;
+            top: 0; left: 0; bottom: 0;
+            width: 4px;
+            border-radius: 12px 0 0 12px;
+        }
+
+        .card-label {
+            font-size: 10.5px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+        }
+
+        .card-value {
+            font-size: 34px;
+            font-weight: 800;
+            line-height: 1;
+            margin-bottom: 8px;
+        }
+
+        .card-sub {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .c-total   .card-accent { background: var(--clr-indigo); }
+        .c-total   .card-value  { color: var(--clr-indigo); }
+        .c-info    .card-accent { background: var(--clr-info); }
+        .c-info    .card-value  { color: var(--clr-info); }
+        .c-warning .card-accent { background: var(--clr-warning); }
+        .c-warning .card-value  { color: var(--clr-warning); }
+        .c-error   .card-accent { background: var(--clr-error); }
+        .c-error   .card-value  { color: var(--clr-error); }
+        .c-logins  .card-accent { background: var(--clr-success); }
+        .c-logins  .card-value  { color: var(--clr-success); }
+
+        /* ─── Panel Card ─── */
+        .panel-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 22px 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+
+        .panel-title {
+            font-size: 11.5px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+            color: var(--text-primary);
+            margin-bottom: 18px;
+        }
+
+        /* ─── Login Stat Tiles ─── */
+        .login-stat {
+            background: #f8fafc;
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            padding: 14px;
+            text-align: center;
+        }
+
+        .ls-value {
+            font-size: 26px;
+            font-weight: 800;
+            line-height: 1;
+            margin-bottom: 5px;
+        }
+
+        .ls-label {
+            font-size: 10.5px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-muted);
+        }
+
+        /* ─── Tables ─── */
+        .mon-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .mon-table th {
+            font-size: 10.5px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+            color: var(--text-muted);
+            padding: 10px 14px;
+            background: #f8fafc;
+            border-bottom: 1px solid var(--card-border);
+            text-align: left;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+
+        .mon-table td {
+            padding: 11px 14px;
+            font-size: 13px;
+            border-bottom: 1px solid #f1f5f9;
+            vertical-align: middle;
+        }
+
+        .mon-table tr:last-child td { border-bottom: none; }
+        .mon-table tr:hover td { background: #fafbfc; }
+
+        @keyframes fadeInRow {
+            0% { background-color: rgba(99, 102, 241, 0.16); }
+            100% { background-color: transparent; }
+        }
+        .new-log-row {
+            animation: fadeInRow 0.6s ease-out;
+        }
+
+        .log-time {
+            font-family: 'Courier New', monospace;
+            font-size: 11.5px;
+            color: var(--text-muted);
+            white-space: nowrap;
+        }
+
+        /* ─── Severity Badges ─── */
+        .sev-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 10.5px;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            white-space: nowrap;
+        }
+
+        .sev-dot {
+            width: 5px; height: 5px;
+            border-radius: 50%;
+        }
+
+        .sev-info    { background: var(--clr-info-bg); color: #0369a1; }
+        .sev-info    .sev-dot { background: var(--clr-info); }
+        .sev-warning { background: var(--clr-warning-bg); color: #92400e; }
+        .sev-warning .sev-dot { background: var(--clr-warning); }
+        .sev-error   { background: var(--clr-error-bg); color: #991b1b; }
+        .sev-error   .sev-dot { background: var(--clr-error); }
+
+        /* ─── Empty State ─── */
+        .empty-row td {
+            text-align: center;
+            color: var(--text-muted);
+            padding: 36px;
+            font-size: 13px;
+        }
+
+        /* ════════════════════ ALERTS SECTION ════════════════════ */
+        .no-alerts-state {
+            text-align: center;
+            padding: 64px 20px;
+        }
+
+        .no-alert-icon {
+            font-size: 48px;
+            color: #10b981;
+            margin-bottom: 16px;
+            line-height: 1;
+        }
+
+        .no-alerts-state h4 {
+            font-size: 19px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .no-alerts-state p {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin: 0 auto;
+            max-width: 440px;
+            line-height: 1.55;
+        }
+
+        /* Active alert card */
+        .active-alert-card {
+            border: 1px solid #fca5a5;
+            border-left: 4px solid var(--clr-error);
+            border-radius: 12px;
+            background: #fff8f8;
+            padding: 24px 26px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 4px rgba(239, 68, 68, 0.08);
+        }
+
+        .alert-card-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 14px;
+        }
+
+        .alert-title {
+            font-size: 18px;
+            font-weight: 800;
+            color: #991b1b;
+            margin: 0;
+        }
+
+        .alert-desc {
+            font-size: 13px;
+            color: #7f1d1d;
+            margin: 4px 0 0;
+            line-height: 1.4;
+        }
+
+        .sev-chip {
+            background: var(--clr-error);
+            color: white;
+            border-radius: 6px;
+            padding: 4px 11px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            white-space: nowrap;
+        }
+
+        .alert-meta-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 32px;
+            margin-bottom: 20px;
+            padding: 14px 18px;
+            background: rgba(255,255,255,0.85);
+            border-radius: 8px;
+            border: 1px solid rgba(239,68,68,0.15);
+        }
+
+        .alert-meta-item .meta-label {
+            font-size: 10.5px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+            color: #b91c1c;
+            display: block;
+            margin-bottom: 3px;
+        }
+
+        .alert-meta-item .meta-value {
+            font-size: 16px;
+            font-weight: 800;
+            color: #7f1d1d;
+        }
+
+        .error-events-box {
+            background: rgba(239,68,68,0.03);
+            border-radius: 10px;
+            padding: 16px;
+            border: 1px solid rgba(239,68,68,0.12);
+        }
+
+        .error-events-title {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+            color: #b91c1c;
+        }
+
+        .error-event-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 14px;
+            padding: 12px 14px;
+            margin-bottom: 8px;
+            background: #ffffff;
+            border: 1px solid rgba(239,68,68,0.18);
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .error-event-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .error-event-row:hover {
+            box-shadow: 0 2px 8px rgba(239,68,68,0.08);
+            border-color: rgba(239,68,68,0.3);
+        }
+
+        .error-event-details {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .error-event-meta {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 4px;
+            flex-wrap: wrap;
+        }
+
+        .err-time {
+            font-family: 'Inter', sans-serif;
+            font-size: 12px;
+            font-weight: 600;
+            color: #64748b;
+        }
+
+        .err-service-badge {
+            background: #fee2e2;
+            color: #991b1b;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .err-msg {
+            color: #1e293b;
+            font-size: 13.5px;
+            font-weight: 500;
+            line-height: 1.45;
+            word-break: break-word;
+        }
+
+        .error-event-action {
+            flex-shrink: 0;
+        }
+
+        .btn-ack-master {
+            background: #dc2626;
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 18px;
+            font-size: 13px;
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            transition: background 0.15s ease, transform 0.1s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn-ack-master:hover {
+            background: #b91c1c;
+            transform: translateY(-1px);
+        }
+        .btn-ack-master:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-ack-item {
+            background: #ffffff;
+            color: #b91c1c;
+            border: 1px solid #fca5a5;
+            border-radius: 6px;
+            padding: 6px 14px;
+            font-size: 12px;
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            white-space: nowrap;
+        }
+        .btn-ack-item:hover {
+            background: #fef2f2;
+            border-color: #ef4444;
+            color: #991b1b;
+        }
+        .btn-ack-item:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* ════════════════════ PERFORMANCE SECTION ════════════════════ */
+        .metric-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 22px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+            height: 100%;
+            transition: transform 0.18s, box-shadow 0.18s;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 16px rgba(0,0,0,0.07);
+        }
+
+        .metric-label-top {
+            font-size: 10.5px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+            color: var(--text-muted);
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .metric-value-xl {
+            font-size: 38px;
+            font-weight: 800;
+            line-height: 1;
+            color: var(--text-primary);
+            margin-bottom: 5px;
+        }
+
+        .metric-sub-text {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 16px;
+        }
+
+        /* Progress bar */
+        .prog-track {
+            height: 8px;
+            background: #f1f5f9;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 6px;
+        }
+
+        .prog-fill {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.7s ease, background 0.4s;
+        }
+
+        .bar-low  { background: var(--clr-success); }
+        .bar-mid  { background: var(--clr-warning); }
+        .bar-high { background: var(--clr-error); }
+
+        .prog-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 10px;
+            color: #94a3b8;
+        }
+
+        /* Instance badges */
+        .inst-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .inst-running { background: var(--clr-success-bg); color: #065f46; }
+        .inst-idle    { background: #f1f5f9; color: var(--text-muted); }
+
+        /* Suggestion cards */
+        .suggestion-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            border-radius: 10px;
+            padding: 14px 16px;
+            margin-bottom: 10px;
+            border: 1px solid;
+        }
+
+        .suggestion-item:last-child { margin-bottom: 0; }
+
+        .sug-warn {
+            background: #fffbeb;
+            border-color: #fde68a;
+        }
+
+        .sug-ok {
+            background: var(--clr-success-bg);
+            border-color: #6ee7b7;
+        }
+
+        .sug-err {
+            background: #fff5f5;
+            border-color: #fca5a5;
+        }
+
+        .sug-info {
+            background: #eff6ff;
+            border-color: #bfdbfe;
+        }
+
+        .sug-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+
+        .sug-text {
+            font-size: 13px;
+            line-height: 1.55;
+        }
+
+        .sug-warn .sug-text { color: #78350f; }
+        .sug-ok   .sug-text { color: #065f46; }
+        .sug-err  .sug-text { color: #7f1d1d; }
+        .sug-info .sug-text { color: #1e40af; }
+    </style>
+</head>
+<body>
+
+<!-- ════════════════════ SIDEBAR ════════════════════ -->
+<nav class="sidebar" aria-label="Monitoring navigation">
+    <div class="sidebar-brand">
+        <div class="brand-icon">📊</div>
+        <h5>Cloud Monitor</h5>
+        <p>Infrastructure &amp; Log Analytics</p>
+    </div>
+
+    <p class="nav-section-label">Navigation</p>
+
+    <ul class="sidebar-nav" role="menubar">
+        <li role="none">
+            <button id="nav-dashboard" class="nav-btn active" role="menuitem"
+                    onclick="showSection('dashboard')" aria-current="page">
+                <span class="nav-icon">🏠</span>
+                <span class="nav-label">Dashboard</span>
+            </button>
+        </li>
+        <li role="none">
+            <button id="nav-alerts" class="nav-btn" role="menuitem"
+                    onclick="showSection('alerts')">
+                <span class="nav-icon">🚨</span>
+                <span class="nav-label">Alerts</span>
+                <span class="alert-badge" id="alertBadge" aria-live="polite">0</span>
+            </button>
+        </li>
+        <li role="none">
+            <button id="nav-performance" class="nav-btn" role="menuitem"
+                    onclick="showSection('performance')">
+                <span class="nav-icon">🖥️</span>
+                <span class="nav-label">Machine Performance &amp; Cost</span>
+            </button>
+        </li>
+    </ul>
+</nav>
+
+<!-- ════════════════════ MAIN CONTENT ════════════════════ -->
+<main class="main-content">
+
+    <!-- ══════════ SECTION 1 — DASHBOARD ══════════ -->
+    <section class="dash-section active" id="section-dashboard">
+        <div class="page-header">
+            <div>
+                <h1>Log Monitoring Dashboard</h1>
+                <p>System telemetry, user login tracking, error analytics &amp; optimization</p>
+            </div>
+            <span class="status-pill"><span class="status-dot"></span>Monitoring Active</span>
+        </div>
+
+        <!-- 1. Summary Cards -->
+        <div class="row g-3 mb-4">
+            <div class="col">
+                <div class="summary-card c-total">
+                    <div class="card-accent"></div>
+                    <div class="card-label">Total Logs</div>
+                    <div class="card-value" id="val-total">0</div>
+                    <div class="card-sub">All recorded events</div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="summary-card c-info">
+                    <div class="card-accent"></div>
+                    <div class="card-label">INFO</div>
+                    <div class="card-value" id="val-info">0</div>
+                    <div class="card-sub">Informational logs</div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="summary-card c-warning">
+                    <div class="card-accent"></div>
+                    <div class="card-label">WARNING</div>
+                    <div class="card-value" id="val-warning">0</div>
+                    <div class="card-sub">Warning events</div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="summary-card c-error">
+                    <div class="card-accent"></div>
+                    <div class="card-label">ERROR</div>
+                    <div class="card-value" id="val-error">0</div>
+                    <div class="card-sub">Error events</div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="summary-card c-logins">
+                    <div class="card-accent"></div>
+                    <div class="card-label">User Logins</div>
+                    <div class="card-value" id="val-logins">0</div>
+                    <div class="card-sub">Total login events</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. User Login Tracking Panel -->
+        <div class="panel-card mb-4">
+            <div class="panel-title">👤 User Login Tracking</div>
+            <div class="row g-3 mb-4">
+                <div class="col-md-3 col-6">
+                    <div class="login-stat">
+                        <div class="ls-value" style="color:var(--clr-indigo)" id="ls-total">0</div>
+                        <div class="ls-label">Total Logins</div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="login-stat">
+                        <div class="ls-value" style="color:var(--clr-success)" id="ls-success">0</div>
+                        <div class="ls-label">Successful</div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="login-stat">
+                        <div class="ls-value" style="color:var(--clr-error)" id="ls-failed">0</div>
+                        <div class="ls-label">Failed Attempts</div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="login-stat">
+                        <div class="ls-value" style="color:var(--clr-info)" id="ls-new-users">0</div>
+                        <div class="ls-label">New Users</div>
+                    </div>
+                </div>
+            </div>
+            <!-- Recent Login Activity Table -->
+            <div style="max-height:200px;overflow-y:auto;border-radius:8px;border:1px solid var(--card-border);">
+                <table class="mon-table" id="loginTable">
+                    <thead>
+                        <tr>
+                            <th>Timestamp</th>
+                            <th>Severity</th>
+                            <th>Service</th>
+                            <th>Activity</th>
+                        </tr>
+                    </thead>
+                    <tbody id="loginTableBody">
+                        <tr class="empty-row"><td colspan="4">No login activity available from Google Cloud Logging.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 3. Charts Row -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-8">
+                <div class="panel-card">
+                    <div class="panel-title">📈 Log Activity Over Time</div>
+                    <div style="height:220px;position:relative;">
+                        <canvas id="logActivityChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="panel-card">
+                    <div class="panel-title">🔐 User Login Trend</div>
+                    <div style="height:220px;position:relative;">
+                        <canvas id="loginTrendChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. Recent System Logs Table -->
+        <div class="panel-card">
+            <div class="panel-title">📋 Recent System Logs</div>
+
+            <!-- 🔍 Search & Filter Toolbar -->
+            <div style="margin-bottom:14px;display:flex;flex-wrap:wrap;align-items:center;gap:10px;">
+                <!-- Keyword Search -->
+                <div style="position:relative;flex:1;min-width:240px;max-width:340px;">
+                    <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:14px;color:#94a3b8;">🔍</span>
+                    <input
+                        type="text"
+                        id="logsSearchInput"
+                        placeholder="Search keyword, order #, message..."
+                        style="width:100%;padding:8px 12px 8px 34px;border:1.5px solid var(--card-border);border-radius:8px;font-size:13px;background:var(--card-bg);color:var(--text-primary);outline:none;transition:border-color 0.2s;"
+                        onfocus="this.style.borderColor='var(--sidebar-active)'"
+                        onblur="this.style.borderColor='var(--card-border)'"
+                    />
+                </div>
+
+                <!-- Severity Filter -->
+                <div style="display:flex;align-items:center;gap:6px;">
+                    <label for="logsSeverityFilter" style="font-size:12px;font-weight:600;color:var(--text-muted);">Severity:</label>
+                    <select
+                        id="logsSeverityFilter"
+                        onchange="applyLogsSearch()"
+                        style="padding:8px 12px;border:1.5px solid var(--card-border);border-radius:8px;font-size:13px;background:var(--card-bg);color:var(--text-primary);outline:none;cursor:pointer;">
+                        <option value="ALL">All Severities</option>
+                        <option value="INFO">🟢 INFO</option>
+                        <option value="WARNING">🟡 WARNING</option>
+                        <option value="ERROR">🔴 ERROR</option>
+                    </select>
+                </div>
+
+                <!-- Service Filter -->
+                <div style="display:flex;align-items:center;gap:6px;">
+                    <label for="logsServiceFilter" style="font-size:12px;font-weight:600;color:var(--text-muted);">Service:</label>
+                    <select
+                        id="logsServiceFilter"
+                        onchange="applyLogsSearch()"
+                        style="padding:8px 12px;border:1.5px solid var(--card-border);border-radius:8px;font-size:13px;background:var(--card-bg);color:var(--text-primary);outline:none;cursor:pointer;">
+                        <option value="ALL">All Services</option>
+                        <option value="Order-Service">📦 Order-Service</option>
+                        <option value="Auth-Service">🔐 Auth-Service</option>
+                        <option value="Frontend">💻 Frontend</option>
+                    </select>
+                </div>
+
+                <!-- Match Count & Reset -->
+                <span id="logsSearchCount" style="font-size:12px;color:var(--text-muted);font-weight:500;"></span>
+                <button onclick="resetLogsFilter();" style="font-size:12px;padding:7px 13px;border:1px solid var(--card-border);border-radius:8px;background:var(--card-bg);color:var(--text-muted);cursor:pointer;font-weight:500;">Reset Filters</button>
+            </div>
+
+            <div style="overflow-x:auto;max-height:400px;overflow-y:auto;border-radius:8px;border:1px solid var(--card-border);">
+                <table class="mon-table" id="systemLogsTable">
+                    <thead>
+                        <tr>
+                            <th>Timestamp</th>
+                            <th>Severity</th>
+                            <th>Service</th>
+                            <th>Message</th>
+                        </tr>
+                    </thead>
+                    <tbody id="systemLogsBody">
+                        <tr class="empty-row"><td colspan="4">No logs available from Google Cloud Logging.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- ══════════ SECTION 2 — ALERTS ══════════ -->
+    <section class="dash-section" id="section-alerts">
+        <div class="page-header">
+            <div>
+                <h1>Alerts</h1>
+                <p>Active alerts and operational incident lifecycle</p>
+            </div>
+        </div>
+
+        <!-- No-alerts state -->
+        <div id="noAlertsState" class="panel-card">
+            <div class="no-alerts-state">
+                <div class="no-alert-icon">✓</div>
+                <h4>All Systems Operational</h4>
+                <p>There are currently no active alerts requiring attention.</p>
+            </div>
+        </div>
+
+        <!-- Active-alerts state (hidden by default) -->
+        <div id="activeAlertsState" style="display:none;">
+            <!-- Main alert card -->
+            <div class="active-alert-card">
+                <div class="alert-card-top">
+                    <div>
+                        <div style="display:flex;align-items:center;gap:12px;margin-bottom:6px;">
+                            <h2 class="alert-title">🚨 High Error Activity Detected</h2>
+                            <span class="sev-chip">CRITICAL</span>
+                        </div>
+                        <p class="alert-desc" id="alertDesc">Critical error events detected in Google Cloud Logging requiring developer review.</p>
+                    </div>
+                    <div>
+                        <button id="btnAckAll" class="btn-ack-master" onclick="acknowledgeAllActiveAlerts()">
+                            ✓ Acknowledge All Alerts
+                        </button>
+                    </div>
+                </div>
+
+                <div class="alert-meta-row">
+                    <div class="alert-meta-item">
+                        <span class="meta-label">Active Errors</span>
+                        <span class="meta-value" id="alertErrorCount">0</span>
+                    </div>
+                    <div class="alert-meta-item">
+                        <span class="meta-label">Detected Time</span>
+                        <span class="meta-value" id="alertTime">—</span>
+                    </div>
+                    <div class="alert-meta-item">
+                        <span class="meta-label">Affected Service(s)</span>
+                        <span class="meta-value" id="alertServices">—</span>
+                    </div>
+                </div>
+
+                <!-- Related error events -->
+                <div class="error-events-box">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                        <div class="error-events-title">Related Error Events</div>
+                        <span style="font-size:11.5px;color:#991b1b;font-weight:500;">Review events and acknowledge when resolved</span>
+                    </div>
+                    <div id="errorEventsList">
+                        <div style="color:#b91c1c;font-size:13px;">No active error details in current log buffer.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ─── SUBSECTION B: ALERT HISTORY (LAST 7 DAYS) ─── -->
+        <div class="panel-card" style="margin-top: 24px;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+                <div>
+                    <h3 style="font-size: 16px; font-weight: 700; color: var(--text-primary); margin: 0 0 4px; display: flex; align-items: center; gap: 8px;">
+                        <span>📋</span> Alert History
+                    </h3>
+                    <p style="font-size: 12.5px; color: var(--text-muted); margin: 0;">
+                        Review all alert events detected during the rolling 7-day Google Cloud Logging window
+                    </p>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span id="historyCountBadge" class="badge" style="background: #e2e8f0; color: #475569; font-weight: 600; font-size: 11.5px; padding: 5px 10px; border-radius: 6px;">
+                        0 events
+                    </span>
+                </div>
+            </div>
+
+            <!-- Filter Controls Bar -->
+            <div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-bottom: 18px; padding: 12px 16px; background: #f8fafc; border-radius: 10px; border: 1px solid var(--card-border);">
+                <!-- Search Input -->
+                <div style="flex: 1; min-width: 200px;">
+                    <input
+                        type="text"
+                        id="historySearchInput"
+                        oninput="filterAlertHistory()"
+                        placeholder="Search by error message or service... 🔍"
+                        style="width: 100%; padding: 8px 12px; font-size: 13px; border: 1.5px solid var(--card-border); border-radius: 8px; background: var(--card-bg); color: var(--text-primary); outline: none;"
+                    >
+                </div>
+
+                <!-- Status Filter -->
+                <div style="display: flex; align-items: center; gap: 6px;">
+                    <label for="historyStatusFilter" style="font-size: 12px; font-weight: 600; color: var(--text-muted);">Status:</label>
+                    <select
+                        id="historyStatusFilter"
+                        onchange="filterAlertHistory()"
+                        style="padding: 8px 12px; border: 1.5px solid var(--card-border); border-radius: 8px; font-size: 13px; background: var(--card-bg); color: var(--text-primary); outline: none; cursor: pointer;"
+                    >
+                        <option value="ALL">All Statuses</option>
+                        <option value="ACTIVE">🔴 Active</option>
+                        <option value="ACKNOWLEDGED">✓ Acknowledged</option>
+                    </select>
+                </div>
+
+                <!-- Service Filter -->
+                <div style="display: flex; align-items: center; gap: 6px;">
+                    <label for="historyServiceFilter" style="font-size: 12px; font-weight: 600; color: var(--text-muted);">Service:</label>
+                    <select
+                        id="historyServiceFilter"
+                        onchange="filterAlertHistory()"
+                        style="padding: 8px 12px; border: 1.5px solid var(--card-border); border-radius: 8px; font-size: 13px; background: var(--card-bg); color: var(--text-primary); outline: none; cursor: pointer;"
+                    >
+                        <option value="ALL">All Services</option>
+                        <option value="Order-Service">📦 Order-Service</option>
+                        <option value="Auth-Service">🔐 Auth-Service</option>
+                        <option value="Frontend">💻 Frontend</option>
+                    </select>
+                </div>
+
+                <!-- Reset button -->
+                <button
+                    onclick="resetHistoryFilters()"
+                    style="font-size: 12px; padding: 7px 13px; border: 1px solid var(--card-border); border-radius: 8px; background: var(--card-bg); color: var(--text-muted); cursor: pointer; font-weight: 500;"
+                >
+                    Reset Filters
+                </button>
+            </div>
+
+            <!-- History Items List Container -->
+            <div id="historyListContainer" style="display: flex; flex-direction: column; gap: 10px;">
+                <div style="text-align: center; padding: 36px 16px; color: var(--text-muted); font-size: 13.5px;">
+                    Loading alert history from Google Cloud Logging...
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ══════════ SECTION 3 — MACHINE PERFORMANCE ══════════ -->
+    <section class="dash-section" id="section-performance">
+        <div class="page-header">
+            <div>
+                <h1>Machine Performance &amp; Cost-Efficiency</h1>
+                <p>Infrastructure metrics and cost optimization recommendations</p>
+            </div>
+        </div>
+
+        <!-- Metric Cards -->
+        <div class="row g-3 mb-4">
+            <!-- CPU -->
+            <div class="col-md-4">
+                <div class="metric-card">
+                    <div class="metric-label-top">🖥️ CPU Utilization</div>
+                    <div class="metric-value-xl" id="cpu-value">—</div>
+                    <div class="metric-sub-text">Avg: <span id="cpu-avg" style="font-weight:600;">—</span></div>
+                    <div class="prog-track">
+                        <div class="prog-fill" id="cpu-bar" style="width:0%"></div>
+                    </div>
+                    <div class="prog-labels"><span>0%</span><span>50%</span><span>100%</span></div>
+                </div>
+            </div>
+            <!-- Memory -->
+            <div class="col-md-4">
+                <div class="metric-card">
+                    <div class="metric-label-top">💾 Memory Usage</div>
+                    <div class="metric-value-xl" id="mem-pct">—</div>
+                    <div class="metric-sub-text" id="mem-details">Loading...</div>
+                    <div class="prog-track">
+                        <div class="prog-fill" id="mem-bar" style="width:0%"></div>
+                    </div>
+                    <div class="prog-labels"><span>0%</span><span>50%</span><span>100%</span></div>
+                </div>
+            </div>
+            <!-- Instances -->
+            <div class="col-md-4">
+                <div class="metric-card">
+                    <div class="metric-label-top">📦 Container Instances</div>
+                    <div class="metric-value-xl" id="inst-total">—</div>
+                    <div class="metric-sub-text">Active + idle containers</div>
+                    <div class="d-flex gap-2 mt-3 flex-wrap">
+                        <span class="inst-badge inst-running">● <span id="inst-active">—</span> Running</span>
+                        <span class="inst-badge inst-idle">○ <span id="inst-idle">—</span> Idle</span>
+                    </div>
+                    <div style="font-size:12px;color:var(--text-muted);margin-top:14px;">
+                        Est. monthly cost: <span id="inst-cost" style="font-weight:700;color:var(--clr-success);">—</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cost-Efficiency Suggestions -->
+        <div class="panel-card">
+            <div class="panel-title">💡 Cost-Efficiency Recommendations</div>
+            <div id="suggestionsContainer">
+                <div style="text-align:center;color:var(--text-muted);padding:40px 20px;">
+                    Loading recommendations...
+                </div>
+            </div>
+        </div>
+    </section>
+
+</main>
+
+<script>
+/* ══════════════════════════════════════════════════════════════
+   MONITORING DASHBOARD — JavaScript
+   - 3-section SPA navigation
+   - 5-second polling against /api/monitoring/logs and /api/monitoring/metrics
+   - Chart.js log activity + login trend charts
+   - Alert detection: ERROR count > 2
+   ══════════════════════════════════════════════════════════════ */
+
+// ─── State ────────────────────────────────────────────────────
+let alertTriggeredAt  = null;
+let failedLoginsCount = 0;
+let logActivityChart  = null;
+let loginTrendChart   = null;
+
+const MAX_CHART_PTS = 10;
+
+const hist = {
+    labels: [], total: [], info: [],
+    warning: [], error: [], logins: [], failedLogins: []
+};
+
+// ─── Navigation ───────────────────────────────────────────────
+function showSection(section) {
+    document.querySelectorAll('.dash-section').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(el => {
+        el.classList.remove('active');
+        el.removeAttribute('aria-current');
+    });
+
+    document.getElementById('section-' + section).classList.add('active');
+    const btn = document.getElementById('nav-' + section);
+    btn.classList.add('active');
+    btn.setAttribute('aria-current', 'page');
+}
+
+// ─── Chart Initialisation ─────────────────────────────────────
+function initCharts() {
+    const sharedScaleOpts = {
+        x: { grid: { display: false }, ticks: { font: { size: 10 }, maxRotation: 0, maxTicksLimit: 6 } },
+        y: { grid: { color: '#f1f5f9' }, ticks: { precision: 0, font: { size: 10 } }, beginAtZero: true }
+    };
+
+    // Log Activity (line)
+    logActivityChart = new Chart(
+        document.getElementById('logActivityChart').getContext('2d'),
+        {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [
+                    { label: 'Total',   data: [], borderColor: '#6366f1', backgroundColor: 'rgba(99,102,241,0.07)', borderWidth: 2, fill: true, tension: 0.4, pointRadius: 3, pointHoverRadius: 5 },
+                    { label: 'INFO',    data: [], borderColor: '#0ea5e9', backgroundColor: 'transparent',            borderWidth: 2, tension: 0.4, pointRadius: 3 },
+                    { label: 'WARNING', data: [], borderColor: '#f59e0b', backgroundColor: 'transparent',            borderWidth: 2, tension: 0.4, pointRadius: 3 },
+                    { label: 'ERROR',   data: [], borderColor: '#ef4444', backgroundColor: 'rgba(239,68,68,0.07)',   borderWidth: 2, fill: true, tension: 0.4, pointRadius: 3 }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: { display: true, position: 'top',
+                        labels: { boxWidth: 12, font: { size: 11 }, padding: 14 } }
+                },
+                scales: sharedScaleOpts
+            }
+        }
+    );
+
+    // Login Trend (bar)
+    loginTrendChart = new Chart(
+        document.getElementById('loginTrendChart').getContext('2d'),
+        {
+            type: 'bar',
+            data: {
+                labels: [],
+                datasets: [
+                    { label: 'Successful', data: [], backgroundColor: 'rgba(16,185,129,0.72)', borderColor: '#10b981', borderWidth: 1, borderRadius: 4 },
+                    { label: 'Failed',     data: [], backgroundColor: 'rgba(239,68,68,0.60)',  borderColor: '#ef4444', borderWidth: 1, borderRadius: 4 }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: true, position: 'top',
+                        labels: { boxWidth: 12, font: { size: 11 }, padding: 14 } }
+                },
+                scales: sharedScaleOpts
+            }
+        }
+    );
+}
+
+// ─── Chart Update (Smooth, Change-Driven) ─────────────────────
+let _lastChartTime = 0;
+let _lastChartData = {};
+
+function updateCharts(data) {
+    if (!logActivityChart || !loginTrendChart) return;
+    const nowTs = Date.now();
+    const hasDataChanged = (
+        data.total_logs !== _lastChartData.total_logs ||
+        data.info !== _lastChartData.info ||
+        data.warnings !== _lastChartData.warnings ||
+        data.errors !== _lastChartData.errors ||
+        (data.successful_logins || 0) !== _lastChartData.successful_logins ||
+        (data.failed_logins || 0) !== _lastChartData.failed_logins
+    );
+
+    // Throttle chart data points: only when counts change or after 5 seconds
+    if (!hasDataChanged && (nowTs - _lastChartTime) < 5000) {
+        return;
+    }
+    _lastChartTime = nowTs;
+    _lastChartData = {
+        total_logs: data.total_logs,
+        info: data.info,
+        warnings: data.warnings,
+        errors: data.errors,
+        successful_logins: data.successful_logins || 0,
+        failed_logins: data.failed_logins || 0
+    };
+
+    const now = new Date().toLocaleTimeString('en-US', {
+        timeZone: 'Asia/Kolkata',
+        hour12: true,
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+    }) + ' IST';
+
+    hist.labels.push(now);
+    hist.total.push(data.total_logs);
+    hist.info.push(data.info);
+    hist.warning.push(data.warnings);
+    hist.error.push(data.errors);
+    hist.logins.push(data.successful_logins || 0);
+    hist.failedLogins.push(data.failed_logins || 0);
+
+    if (hist.labels.length > MAX_CHART_PTS) {
+        Object.values(hist).forEach(arr => arr.shift());
+    }
+
+    logActivityChart.data.labels          = [...hist.labels];
+    logActivityChart.data.datasets[0].data = [...hist.total];
+    logActivityChart.data.datasets[1].data = [...hist.info];
+    logActivityChart.data.datasets[2].data = [...hist.warning];
+    logActivityChart.data.datasets[3].data = [...hist.error];
+    logActivityChart.update('none');
+
+    loginTrendChart.data.labels          = [...hist.labels];
+    loginTrendChart.data.datasets[0].data = [...hist.logins];
+    loginTrendChart.data.datasets[1].data = [...hist.failedLogins];
+    loginTrendChart.update('none');
+}
+
+// ─── Utility: IST Date Formatter & HTML Escape ─────────────────
+function formatIST(d = new Date()) {
+    try {
+        const parts = new Intl.DateTimeFormat('en-GB', {
+            timeZone: 'Asia/Kolkata',
+            day: '2-digit', month: 'short', year: 'numeric',
+            hour: '2-digit', minute: '2-digit', second: '2-digit',
+            hour12: true
+        }).formatToParts(d);
+        const p = {};
+        parts.forEach(({ type, value }) => p[type] = value);
+        const day = p.day || '01';
+        const month = p.month || 'Jan';
+        const year = p.year || '2026';
+        const hour = p.hour || '12';
+        const minute = p.minute || '00';
+        const second = p.second || '00';
+        const dayPeriod = (p.dayPeriod || 'AM').toUpperCase();
+        return `${day}-${month}-${year} ${hour}:${minute}:${second} ${dayPeriod} IST`;
+    } catch (e) {
+        return d.toLocaleString('en-GB', { timeZone: 'Asia/Kolkata' }) + ' IST';
+    }
+}
+
+function escapeHtml(text) {
+    if (!text) return '';
+    const map = {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'};
+    return String(text).replace(/[&<>"']/g, m => map[m]);
+}
+
+function sevBadge(level) {
+    const cls = level === 'ERROR' ? 'sev-error' : level === 'WARNING' ? 'sev-warning' : 'sev-info';
+    return `<span class="sev-badge ${cls}"><span class="sev-dot"></span>${level}</span>`;
+}
+
+function createLogRow(l, isNew = false) {
+    const tr = document.createElement('tr');
+    if (l.id) tr.dataset.logId = l.id;
+    if (isNew) tr.className = 'new-log-row';
+    tr.innerHTML = `
+        <td class="log-time">${escapeHtml(l.time)}</td>
+        <td>${sevBadge(l.level)}</td>
+        <td style="font-weight:600;">${escapeHtml(l.service)}</td>
+        <td>${escapeHtml(l.message)}</td>
+    `;
+    return tr;
+}
+
+// ─── Update Login Stats (Selective DOM Updates) ────────────────
+let _prevLoginStats = {};
+function updateLoginStats(data) {
+    const successCount = data.successful_logins || 0;
+    const failedCount  = data.failed_logins     || 0;
+    const newUsersCount = data.new_users        || 0;
+    const totalLogins   = successCount + failedCount;
+
+    if (totalLogins !== _prevLoginStats.total) {
+        document.getElementById('ls-total').textContent = totalLogins;
+    }
+    if (successCount !== _prevLoginStats.success) {
+        document.getElementById('ls-success').textContent = successCount;
+    }
+    if (failedCount !== _prevLoginStats.failed) {
+        document.getElementById('ls-failed').textContent = failedCount;
+    }
+    if (newUsersCount !== _prevLoginStats.newUsers) {
+        const newUsersEl = document.getElementById('ls-new-users');
+        if (newUsersEl) newUsersEl.textContent = newUsersCount;
+    }
+    _prevLoginStats = { total: totalLogins, success: successCount, failed: failedCount, newUsers: newUsersCount };
+}
+
+// ─── All logs stored globally for search & incremental rendering ────
+let _allStoredLogs = [];
+let _renderedLogIds = new Set();
+let _renderedLoginLogIds = new Set();
+const MAX_VISIBLE_LOG_ROWS = 150;
+
+function resetLogsFilter() {
+    const searchInput = document.getElementById('logsSearchInput');
+    const sevFilter   = document.getElementById('logsSeverityFilter');
+    const svcFilter   = document.getElementById('logsServiceFilter');
+    if (searchInput) searchInput.value = '';
+    if (sevFilter)   sevFilter.value = 'ALL';
+    if (svcFilter)   svcFilter.value = 'ALL';
+    _renderedLogIds.clear();
+    renderSystemLogs([], _allStoredLogs);
+}
+
+function applyLogsSearch() {
+    const query = (document.getElementById('logsSearchInput')?.value || '').trim().toLowerCase();
+    const selectedSev = (document.getElementById('logsSeverityFilter')?.value || 'ALL').toUpperCase();
+    const selectedSvc = (document.getElementById('logsServiceFilter')?.value || 'ALL');
+
+    const tbody   = document.getElementById('systemLogsBody');
+    const countEl = document.getElementById('logsSearchCount');
+
+    const source = _allStoredLogs.length > 0 ? _allStoredLogs : [];
+
+    if (!source || source.length === 0) {
+        tbody.innerHTML = '<tr class="empty-row"><td colspan="4">No logs available from Google Cloud Logging.</td></tr>';
+        if (countEl) countEl.textContent = '';
+        _renderedLogIds.clear();
+        return;
+    }
+
+    const filtered = source.filter(l => {
+        if (selectedSev !== 'ALL' && (l.level || '').toUpperCase() !== selectedSev) return false;
+        if (selectedSvc !== 'ALL' && (l.service || '') !== selectedSvc) return false;
+        if (query) {
+            const matchesQuery =
+                (l.time    || '').toLowerCase().includes(query) ||
+                (l.level   || '').toLowerCase().includes(query) ||
+                (l.service || '').toLowerCase().includes(query) ||
+                (l.message || '').toLowerCase().includes(query);
+            if (!matchesQuery) return false;
+        }
+        return true;
+    });
+
+    const isFiltered = Boolean(query || selectedSev !== 'ALL' || selectedSvc !== 'ALL');
+    if (countEl) {
+        countEl.textContent = isFiltered
+            ? `${filtered.length} of ${source.length} logs`
+            : `${source.length} total logs`;
+    }
+
+    if (filtered.length === 0) {
+        tbody.innerHTML = `<tr class="empty-row"><td colspan="4">No logs match the selected filter conditions.</td></tr>`;
+        _renderedLogIds.clear();
+        return;
+    }
+
+    // Build filtered rows cleanly
+    _renderedLogIds.clear();
+    const frag = document.createDocumentFragment();
+    for (const l of filtered.slice(0, MAX_VISIBLE_LOG_ROWS)) {
+        const id = l.id || (l.time + l.service + l.message);
+        _renderedLogIds.add(id);
+        frag.appendChild(createLogRow({ ...l, id }));
+    }
+    tbody.innerHTML = '';
+    tbody.appendChild(frag);
+}
+
+// ─── Render Recent System Logs (Incremental & Zero-Flicker) ───
+function renderSystemLogs(logs, allLogs) {
+    const sourceLogs = (allLogs && allLogs.length > 0) ? allLogs : logs;
+    if (!sourceLogs || sourceLogs.length === 0) {
+        _allStoredLogs = [];
+        _renderedLogIds.clear();
+        const tbody = document.getElementById('systemLogsBody');
+        tbody.innerHTML = '<tr class="empty-row"><td colspan="4">No logs available from Google Cloud Logging.</td></tr>';
+        const countEl = document.getElementById('logsSearchCount');
+        if (countEl) countEl.textContent = '';
+        return;
+    }
+
+    _allStoredLogs = sourceLogs;
+
+    // Check if user has active filters
+    const query = (document.getElementById('logsSearchInput')?.value || '').trim();
+    const selectedSev = (document.getElementById('logsSeverityFilter')?.value || 'ALL').toUpperCase();
+    const selectedSvc = (document.getElementById('logsServiceFilter')?.value || 'ALL');
+    const isFiltered = Boolean(query || selectedSev !== 'ALL' || selectedSvc !== 'ALL');
+
+    if (isFiltered) {
+        applyLogsSearch();
+        return;
+    }
+
+    const tbody = document.getElementById('systemLogsBody');
+    const countEl = document.getElementById('logsSearchCount');
+    if (countEl) countEl.textContent = `${_allStoredLogs.length} total logs`;
+
+    // Initial render when table is empty
+    if (_renderedLogIds.size === 0 || tbody.querySelector('.empty-row')) {
+        tbody.innerHTML = '';
+        _renderedLogIds.clear();
+        const frag = document.createDocumentFragment();
+        const initialBatch = _allStoredLogs.slice(0, MAX_VISIBLE_LOG_ROWS);
+        for (const l of initialBatch) {
+            const id = l.id || (l.time + l.service + l.message);
+            _renderedLogIds.add(id);
+            frag.appendChild(createLogRow({ ...l, id }));
+        }
+        tbody.appendChild(frag);
+        return;
+    }
+
+    // Incremental update: detect only new logs
+    const newLogs = [];
+    for (const l of _allStoredLogs) {
+        const id = l.id || (l.time + l.service + l.message);
+        if (!_renderedLogIds.has(id)) {
+            newLogs.push({ ...l, id });
+        } else {
+            break; // Logs are ordered descending by time
+        }
+    }
+
+    if (newLogs.length > 0) {
+        const frag = document.createDocumentFragment();
+        for (const l of newLogs) {
+            _renderedLogIds.add(l.id);
+            frag.appendChild(createLogRow(l, true));
+        }
+        tbody.insertBefore(frag, tbody.firstChild);
+
+        // Prune bottom rows exceeding limit
+        while (tbody.children.length > MAX_VISIBLE_LOG_ROWS) {
+            const lastChild = tbody.lastElementChild;
+            if (lastChild && lastChild.dataset.logId) {
+                _renderedLogIds.delete(lastChild.dataset.logId);
+            }
+            if (lastChild) lastChild.remove();
+        }
+    }
+    // If newLogs.length === 0, NO DOM manipulation occurs!
+}
+
+// ─── Render Login Table (Incremental & Zero-Flicker) ──────────
+function renderLoginTable(logs) {
+    const tbody = document.getElementById('loginTableBody');
+    if (!logs || logs.length === 0) {
+        if (_renderedLoginLogIds.size > 0 || !tbody.querySelector('.empty-row')) {
+            _renderedLoginLogIds.clear();
+            tbody.innerHTML = '<tr class="empty-row"><td colspan="4">No login activity available from Google Cloud Logging.</td></tr>';
+        }
+        return;
+    }
+
+    const loginLogs = logs.filter(l =>
+        l.service === 'Auth-Service' ||
+        (l.message && (
+            l.message.toLowerCase().includes('login') ||
+            l.message.toLowerCase().includes('auth') ||
+            l.message.toLowerCase().includes('sign')
+        ))
+    );
+
+    if (loginLogs.length === 0) {
+        if (_renderedLoginLogIds.size > 0 || !tbody.querySelector('.empty-row')) {
+            _renderedLoginLogIds.clear();
+            tbody.innerHTML = '<tr class="empty-row"><td colspan="4">No login activity available from Google Cloud Logging.</td></tr>';
+        }
+        return;
+    }
+
+    // Initial render
+    if (_renderedLoginLogIds.size === 0 || tbody.querySelector('.empty-row')) {
+        tbody.innerHTML = '';
+        _renderedLoginLogIds.clear();
+        const frag = document.createDocumentFragment();
+        for (const l of loginLogs.slice(0, 30)) {
+            const id = l.id || (l.time + l.service + l.message);
+            _renderedLoginLogIds.add(id);
+            frag.appendChild(createLogRow({ ...l, id }));
+        }
+        tbody.appendChild(frag);
+        return;
+    }
+
+    // Incremental update
+    const newLoginLogs = [];
+    for (const l of loginLogs) {
+        const id = l.id || (l.time + l.service + l.message);
+        if (!_renderedLoginLogIds.has(id)) {
+            newLoginLogs.push({ ...l, id });
+        } else {
+            break;
+        }
+    }
+
+    if (newLoginLogs.length > 0) {
+        const frag = document.createDocumentFragment();
+        for (const l of newLoginLogs) {
+            _renderedLoginLogIds.add(l.id);
+            frag.appendChild(createLogRow(l, true));
+        }
+        tbody.insertBefore(frag, tbody.firstChild);
+
+        while (tbody.children.length > 30) {
+            const lastChild = tbody.lastElementChild;
+            if (lastChild && lastChild.dataset.logId) {
+                _renderedLoginLogIds.delete(lastChild.dataset.logId);
+            }
+            if (lastChild) lastChild.remove();
+        }
+    }
+}
+
+// ─── Alert Detection & Professional Lifecycle ─────────────────
+let _prevAlertSignature = '';
+let _currentActiveErrors = [];
+let _isAcknowledgingAlert = false;
+
+function checkAlerts(data) {
+    // 1. Identify active (unacknowledged) error logs
+    const activeErrors = data.active_error_logs ||
+        (data.recent_logs || []).filter(l => l.level === 'ERROR' && !l.acknowledged);
+    const activeCount = typeof data.active_alerts_count === 'number'
+        ? data.active_alerts_count
+        : activeErrors.length;
+
+    _currentActiveErrors = activeErrors;
+
+    const signature = `${activeCount}_${activeErrors.map(e => e.id).join(',')}`;
+    if (signature === _prevAlertSignature) return; // Unchanged, avoid DOM work
+    _prevAlertSignature = signature;
+
+    const badge    = document.getElementById('alertBadge');
+    const noState  = document.getElementById('noAlertsState');
+    const actState = document.getElementById('activeAlertsState');
+
+    // 2. Lifecycle evaluation: Active vs Operational
+    if (activeCount > 0) {
+        // Update sidebar badge
+        badge.textContent = activeCount;
+        badge.classList.add('visible');
+
+        const latestTime = activeErrors.length > 0 && activeErrors[0].time
+            ? activeErrors[0].time
+            : formatIST(new Date());
+
+        document.getElementById('alertDesc').textContent =
+            `${activeCount} active error event${activeCount !== 1 ? 's' : ''} detected in Google Cloud Logging requiring acknowledgement.`;
+        document.getElementById('alertErrorCount').textContent = activeCount;
+        document.getElementById('alertTime').textContent       = latestTime;
+
+        const services = [...new Set(activeErrors.map(l => l.service))];
+        document.getElementById('alertServices').textContent = services.join(', ') || '—';
+
+        // Render clean, individual error cards with acknowledge button
+        const evtContainer = document.getElementById('errorEventsList');
+        if (activeErrors.length > 0) {
+            evtContainer.innerHTML = activeErrors.map(l => {
+                const safeId = escapeHtml(l.id || '');
+                return `
+                <div class="error-event-row" id="alert-row-${safeId}">
+                    <div class="error-event-details">
+                        <div class="error-event-meta">
+                            <span class="err-time">${escapeHtml(l.time)}</span>
+                            <span class="err-service-badge">${escapeHtml(l.service)}</span>
+                        </div>
+                        <div class="err-msg">${escapeHtml(l.message)}</div>
+                    </div>
+                    <div class="error-event-action">
+                        <button class="btn-ack-item" id="btn-ack-${safeId}" onclick="acknowledgeSingleAlert('${safeId}')">
+                            ✓ Acknowledge
+                        </button>
+                    </div>
+                </div>`;
+            }).join('');
+        } else {
+            evtContainer.innerHTML = '<div style="color:#b91c1c;font-size:13px;padding:8px 0;">No active error details in current buffer.</div>';
+        }
+
+        noState.style.display  = 'none';
+        actState.style.display = 'block';
+
+    } else {
+        // Zero active alerts: All systems operational
+        badge.classList.remove('visible');
+        noState.style.display  = 'block';
+        actState.style.display = 'none';
+    }
+}
+
+// ─── Alert Acknowledgement Handlers ───────────────────────────
+
+async function acknowledgeSingleAlert(alertId) {
+    if (!alertId || _isAcknowledgingAlert) return;
+    const btn = document.getElementById(`btn-ack-${alertId}`);
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Acknowledging...';
+    }
+
+    try {
+        const targetAlert = _currentActiveErrors.find(e => (e.id === alertId || e.alert_id === alertId));
+        const alertTs = targetAlert?.timestamp_utc || targetAlert?.alert_timestamp || null;
+
+        const res = await fetch('/api/monitoring/alerts/acknowledge', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                alert_id: alertId,
+                alert_timestamp: alertTs
+            })
+        });
+
+        if (res.ok) {
+            // Optimistic row removal animation
+            const row = document.getElementById(`alert-row-${alertId}`);
+            if (row) {
+                row.style.opacity = '0';
+                row.style.transform = 'translateX(20px)';
+                setTimeout(() => row.remove(), 180);
+            }
+            // Fetch updated logs from GCP immediately to sync state
+            await fetchLogs();
+        } else {
+            alert('Failed to acknowledge alert. Please try again.');
+            if (btn) {
+                btn.disabled = false;
+                btn.textContent = '✓ Acknowledge';
+            }
+        }
+    } catch (err) {
+        console.error('Error acknowledging alert:', err);
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = '✓ Acknowledge';
+        }
+    }
+}
+
+async function acknowledgeAllActiveAlerts() {
+    if (_isAcknowledgingAlert) return;
+    const btn = document.getElementById('btnAckAll');
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Acknowledging all...';
+    }
+    _isAcknowledgingAlert = true;
+
+    try {
+        const alertsList = _currentActiveErrors.map(e => ({
+            id: e.id || e.alert_id,
+            alert_timestamp: e.timestamp_utc || e.alert_timestamp || null
+        })).filter(a => a.id);
+        const alertIds = alertsList.map(a => a.id);
+
+        const res = await fetch('/api/monitoring/alerts/acknowledge', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                all: true, 
+                alert_ids: alertIds,
+                alerts: alertsList
+            })
+        });
+
+        if (res.ok) {
+            await fetchLogs();
+        } else {
+            alert('Failed to acknowledge alerts. Please try again.');
+            if (btn) {
+                btn.disabled = false;
+                btn.textContent = '✓ Acknowledge All Alerts';
+            }
+        }
+    } catch (err) {
+        console.error('Error acknowledging all alerts:', err);
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = '✓ Acknowledge All Alerts';
+        }
+    } finally {
+        _isAcknowledgingAlert = false;
+    }
+}
+
+// ─── Alert History (Rolling 7 Days) Management ────────────────
+let _rawAlertHistory = [];
+
+function populateHistoryServiceDropdown(historyList) {
+    const select = document.getElementById('historyServiceFilter');
+    if (!select) return;
+    const currentVal = select.value;
+    const services = new Set(['Order-Service', 'Auth-Service', 'Frontend']);
+    (historyList || []).forEach(item => {
+        if (item.service) services.add(item.service);
+    });
+    const sorted = Array.from(services).sort();
+    let html = '<option value="ALL">All Services</option>';
+    sorted.forEach(svc => {
+        const icon = svc === 'Order-Service' ? '📦 ' : (svc === 'Auth-Service' ? '🔐 ' : (svc === 'Frontend' ? '💻 ' : '⚙️ '));
+        html += `<option value="${escapeHtml(svc)}">${icon}${escapeHtml(svc)}</option>`;
+    });
+    select.innerHTML = html;
+    if (services.has(currentVal)) {
+        select.value = currentVal;
+    }
+}
+
+function renderAlertHistory(historyList) {
+    if (Array.isArray(historyList)) {
+        _rawAlertHistory = historyList;
+        populateHistoryServiceDropdown(historyList);
+    }
+    filterAlertHistory();
+}
+
+function filterAlertHistory() {
+    const searchVal   = (document.getElementById('historySearchInput')?.value || '').toLowerCase().trim();
+    const statusVal   = document.getElementById('historyStatusFilter')?.value || 'ALL';
+    const serviceVal  = document.getElementById('historyServiceFilter')?.value || 'ALL';
+    const container   = document.getElementById('historyListContainer');
+    const badge       = document.getElementById('historyCountBadge');
+
+    if (!container) return;
+
+    let filtered = _rawAlertHistory.filter(item => {
+        // Status filter
+        if (statusVal !== 'ALL' && item.status !== statusVal) {
+            return false;
+        }
+        // Service filter
+        if (serviceVal !== 'ALL' && item.service !== serviceVal) {
+            return false;
+        }
+        // Search filter
+        if (searchVal) {
+            const msgMatch = (item.message || '').toLowerCase().includes(searchVal);
+            const svcMatch = (item.service || '').toLowerCase().includes(searchVal);
+            if (!msgMatch && !svcMatch) return false;
+        }
+        return true;
+    });
+
+    if (badge) {
+        badge.textContent = `${filtered.length} event${filtered.length !== 1 ? 's' : ''}`;
+    }
+
+    if (filtered.length === 0) {
+        if (_rawAlertHistory.length === 0) {
+            container.innerHTML = `
+                <div style="text-align: center; padding: 48px 16px; background: #f8fafc; border-radius: 8px; border: 1px dashed var(--card-border);">
+                    <div style="font-size: 32px; margin-bottom: 8px;">📋</div>
+                    <div style="font-weight: 600; color: var(--text-primary); font-size: 14px; margin-bottom: 4px;">No Alert History</div>
+                    <div style="font-size: 13px; color: var(--text-muted);">No alert events have been recorded in the rolling 7-day Google Cloud Logging window.</div>
+                </div>`;
+        } else {
+            container.innerHTML = `
+                <div style="text-align: center; padding: 36px 16px; background: #f8fafc; border-radius: 8px; border: 1px dashed var(--card-border);">
+                    <div style="font-weight: 600; color: var(--text-primary); font-size: 14px; margin-bottom: 4px;">No Matching Alerts</div>
+                    <div style="font-size: 13px; color: var(--text-muted);">No alert events matched your active search or filters.</div>
+                </div>`;
+        }
+        return;
+    }
+
+    container.innerHTML = filtered.map(item => {
+        const isAck = item.status === 'ACKNOWLEDGED';
+        return `
+        <div class="history-item-card" style="padding: 16px 18px; border-radius: 10px; background: #ffffff; border: 1px solid #e2e8f0; transition: box-shadow 0.18s ease; border-left: 4px solid ${isAck ? '#10b981' : '#ef4444'};">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; flex-wrap: wrap; gap: 8px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 16px;">🚨</span>
+                    <span style="font-weight: 700; font-size: 14px; color: #0f172a;">${escapeHtml(item.service || 'System')}</span>
+                    <span class="sev-chip" style="font-size: 10px; padding: 2px 7px;">CRITICAL</span>
+                </div>
+                <div>
+                    ${isAck ? `
+                        <span class="status-pill" style="background: #ecfdf5; color: #047857; border-color: #a7f3d0; font-size: 11.5px; padding: 3px 10px; font-weight: 700;">
+                            ✓ ACKNOWLEDGED
+                        </span>
+                    ` : `
+                        <span class="status-pill" style="background: #fef2f2; color: #b91c1c; border-color: #fecaca; font-size: 11.5px; padding: 3px 10px; font-weight: 700;">
+                            🔴 ACTIVE
+                        </span>
+                    `}
+                </div>
+            </div>
+
+            <div style="font-size: 13.5px; color: #334155; font-weight: 500; margin-bottom: 10px; line-height: 1.45; word-break: break-word;">
+                ${escapeHtml(item.message || '')}
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #64748b; flex-wrap: wrap; gap: 8px; border-top: 1px solid #f1f5f9; padding-top: 8px;">
+                <div>
+                    <span style="font-weight: 600; color: #475569;">Detected:</span> ${escapeHtml(item.time || '—')}
+                </div>
+                ${item.acknowledged_at ? `
+                    <div style="color: #047857; font-weight: 500;">
+                        <span style="font-weight: 600;">Acknowledged:</span> ${escapeHtml(item.acknowledged_at)}
+                    </div>
+                ` : ''}
+            </div>
+        </div>`;
+    }).join('');
+}
+
+function resetHistoryFilters() {
+    const searchInput   = document.getElementById('historySearchInput');
+    const statusSelect = document.getElementById('historyStatusFilter');
+    const serviceSelect = document.getElementById('historyServiceFilter');
+    if (searchInput) searchInput.value = '';
+    if (statusSelect) statusSelect.value = 'ALL';
+    if (serviceSelect) serviceSelect.value = 'ALL';
+    filterAlertHistory();
+}
+
+// ─── Selective Log Counters Update ────────────────────────────
+let _prevLogCounts = {};
+
+function updateLogCounters(data) {
+    if (data.total_logs !== _prevLogCounts.total_logs) {
+        document.getElementById('val-total').textContent = data.total_logs;
+    }
+    if (data.info !== _prevLogCounts.info) {
+        document.getElementById('val-info').textContent = data.info;
+    }
+    if (data.warnings !== _prevLogCounts.warnings) {
+        document.getElementById('val-warning').textContent = data.warnings;
+    }
+    if (data.errors !== _prevLogCounts.errors) {
+        document.getElementById('val-error').textContent = data.errors;
+    }
+    if (data.logins_count !== _prevLogCounts.logins_count) {
+        document.getElementById('val-logins').textContent = data.logins_count;
+    }
+    updateLoginStats(data);
+
+    _prevLogCounts = {
+        total_logs: data.total_logs,
+        info: data.info,
+        warnings: data.warnings,
+        errors: data.errors,
+        logins_count: data.logins_count
+    };
+}
+
+// ─── Fetch Logs (GCP-only with Request Locking) ────────────────
+let _isFetchingLogs = false;
+
+async function fetchLogs() {
+    if (_isFetchingLogs) return; // Prevent concurrent requests
+    _isFetchingLogs = true;
+    try {
+        const res = await fetch('/api/monitoring/logs');
+        if (!res.ok) return;
+        const data = await res.json();
+
+        // GCP empty state
+        if (data.no_data) {
+            _allStoredLogs = [];
+            _renderedLogIds.clear();
+            _renderedLoginLogIds.clear();
+            updateLogCounters({ total_logs: 0, info: 0, warnings: 0, errors: 0, logins_count: 0, successful_logins: 0, failed_logins: 0, new_users: 0 });
+            renderLoginTable([]);
+            renderSystemLogs([], []);
+            checkAlerts({ active_alerts_count: 0, active_error_logs: [], errors: 0, recent_logs: [] });
+            renderAlertHistory([]);
+            return;
+        }
+
+        // Selective UI updates
+        updateLogCounters(data);
+        renderLoginTable(data.recent_logs);
+        renderSystemLogs(data.recent_logs, data.all_logs || null);
+        updateCharts(data);
+        checkAlerts(data);
+        renderAlertHistory(data.alert_history || []);
+
+    } catch (err) {
+        console.error('[Monitor] Log fetch failed:', err);
+    } finally {
+        _isFetchingLogs = false;
+    }
+}
+
+// ─── Fetch Metrics (Selective Change Detection & Request Locking)
+let _isFetchingMetrics = false;
+let _prevMetrics = {};
+
+async function fetchMetrics() {
+    if (_isFetchingMetrics) return; // Prevent concurrent requests
+    _isFetchingMetrics = true;
+    try {
+        const res = await fetch('/api/monitoring/metrics');
+        if (!res.ok) return;
+        const m = await res.json();
+
+        // ── CPU ───────────────────────────────────────────────────────
+        if (m.cpu_raw !== _prevMetrics.cpu_raw || m.cpu_utilization !== _prevMetrics.cpu_utilization) {
+            const cpuValue = document.getElementById('cpu-value');
+            const cpuBar   = document.getElementById('cpu-bar');
+            const cpuAvgEl = document.getElementById('cpu-avg');
+            if (m.cpu_raw !== null && m.cpu_raw !== undefined) {
+                cpuValue.textContent = m.cpu_utilization;
+                cpuAvgEl.textContent = m.cpu_avg || '—';
+                cpuBar.style.width   = m.cpu_raw + '%';
+                cpuBar.className     = 'prog-fill ' + (m.cpu_raw > 70 ? 'bar-high' : m.cpu_raw > 40 ? 'bar-mid' : 'bar-low');
+            } else {
+                cpuValue.textContent = 'N/A';
+                cpuAvgEl.textContent = '—';
+                cpuBar.style.width   = '0%';
+                cpuBar.className     = 'prog-fill';
+            }
+        }
+
+        // ── Memory ───────────────────────────────────────────────────
+        if (m.memory_mb !== _prevMetrics.memory_mb || m.memory_pct !== _prevMetrics.memory_pct) {
+            const memPct     = document.getElementById('mem-pct');
+            const memDetails = document.getElementById('mem-details');
+            const memBar     = document.getElementById('mem-bar');
+            if (m.memory_mb !== null && m.memory_mb !== undefined && m.memory_pct !== null && m.memory_pct !== undefined) {
+                memPct.textContent     = m.memory_pct + '%';
+                memDetails.textContent = m.memory_usage;
+                memBar.style.width     = m.memory_pct + '%';
+                memBar.className       = 'prog-fill ' + (m.memory_pct > 75 ? 'bar-high' : m.memory_pct > 50 ? 'bar-mid' : 'bar-low');
+            } else {
+                memPct.textContent     = 'N/A';
+                memDetails.textContent = 'N/A';
+                memBar.style.width     = '0%';
+                memBar.className       = 'prog-fill';
+            }
+        }
+
+        // ── Instances ─────────────────────────────────────────────────
+        if (m.active_instances !== _prevMetrics.active_instances ||
+            m.idle_instances !== _prevMetrics.idle_instances ||
+            m.no_data !== _prevMetrics.no_data ||
+            m.cost_display !== _prevMetrics.cost_display) {
+            if (m.active_instances !== null && m.active_instances !== undefined) {
+                const total = (m.idle_instances !== null && m.idle_instances !== undefined)
+                    ? m.active_instances + m.idle_instances
+                    : m.active_instances;
+                document.getElementById('inst-total').textContent  = total;
+                document.getElementById('inst-active').textContent = m.active_instances;
+                document.getElementById('inst-idle').textContent   = (m.idle_instances !== null && m.idle_instances !== undefined) ? m.idle_instances : 'N/A';
+            } else {
+                document.getElementById('inst-total').textContent  = 'N/A';
+                document.getElementById('inst-active').textContent = 'N/A';
+                document.getElementById('inst-idle').textContent   = 'N/A';
+            }
+            // Honest billing display: show N/A when Cloud Billing API is not connected
+            const costVal = (m.estimated_monthly_cost !== null && m.estimated_monthly_cost !== undefined)
+                ? m.estimated_monthly_cost
+                : (m.cost_display || 'N/A');
+            document.getElementById('inst-cost').textContent = costVal;
+        }
+
+        // ── Suggestions ───────────────────────────────────────────────
+        const sugJson = JSON.stringify(m.suggestions || []);
+        if (sugJson !== _prevMetrics._sugJson) {
+            const container = document.getElementById('suggestionsContainer');
+            if (m.suggestions && m.suggestions.length > 0) {
+                container.innerHTML = m.suggestions.map(s => {
+                    let cls = 'sug-warn';
+                    if (s.icon === '✅' || s.icon === '💡') cls = 'sug-ok';
+                    else if (s.icon === '🔴' || s.icon === '⚠️') cls = 'sug-err';
+                    else if (s.icon === 'ℹ️') cls = 'sug-info';
+                    else if (s.icon === '⏳' || s.icon === '💤' || s.icon === '⚡') cls = 'sug-warn';
+                    return `<div class="suggestion-item ${cls}">
+                        <span class="sug-icon">${escapeHtml(s.icon)}</span>
+                        <span class="sug-text">${escapeHtml(s.text)}</span>
+                    </div>`;
+                }).join('');
+            } else {
+                container.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:30px;">No recommendations at this time.</div>';
+            }
+        }
+
+        _prevMetrics = { ...m, _sugJson: sugJson };
+
+    } catch (err) {
+        console.error('[Monitor] Metrics fetch failed:', err);
+    } finally {
+        _isFetchingMetrics = false;
+    }
+}
+
+// ─── Polling Loop ─────────────────────────────────────────────
+async function pollAll() {
+    await Promise.allSettled([fetchLogs(), fetchMetrics()]);
+}
+
+// ─── Bootstrap ───────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+    initCharts();
+    pollAll();                          // immediate first load
+    const logPollInterval = {{ log_poll_interval_ms | default(5000) }};
+    const metricsPollInterval = {{ metrics_poll_interval_ms | default(5000) }};
+    setInterval(fetchLogs, logPollInterval);       // configurable log polling (default 5000ms, demo 1000ms)
+    setInterval(fetchMetrics, metricsPollInterval); // configurable metrics polling (default 5000ms, demo 2500ms)
+
+    // Wire up search input
+    const searchInput = document.getElementById('logsSearchInput');
+    if (searchInput) {
+        searchInput.addEventListener('input', applyLogsSearch);
+    }
+});
+</script>
+</body>
+</html>
